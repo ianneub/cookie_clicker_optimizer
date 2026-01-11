@@ -1,6 +1,6 @@
 # Cookie Clicker Optimizer
 
-A bookmarklet that tells you the most efficient purchase in Cookie Clicker by leveraging [Cookie Monster](https://github.com/CookieMonsterTeam/CookieMonster)'s payback period calculations.
+A bookmarklet that displays the most efficient purchase in Cookie Clicker using a floating on-screen panel. Leverages [Cookie Monster](https://github.com/CookieMonsterTeam/CookieMonster)'s payback period calculations.
 
 ## How It Works
 
@@ -32,30 +32,46 @@ The optimizer uses Cookie Monster's **Payback Period (PP)** metric to rank all a
 ## Usage
 
 1. Open [Cookie Clicker](https://orteil.dashnet.org/cookieclicker/)
-2. Click your bookmarklet (or run the console script)
-3. Check the browser console (F12 > Console) for results
+2. Click your bookmarklet to start the optimizer
+3. A floating panel appears in the top-left corner
 
 The first time you run it, Cookie Monster will be automatically loaded if not already present (this may take a few seconds).
 
-## Output
+### Controls
 
-The optimizer displays:
-- **Best Overall Purchase**: The item with the lowest PP
-- **Best Affordable Purchase**: The best item you can buy right now (if different)
-- **Top 5 by Efficiency**: Quick reference of your best options
+- **Click bookmarklet again** - Toggle off (stops and removes panel)
+- **Drag the header** - Move the panel anywhere on screen
+- **Click X** - Close the panel
+- **`CCOptimizerStop()`** - Stop from console
 
-Example output:
+## Features
+
+### Auto-Refresh
+The optimizer automatically updates:
+- Every **2 seconds**
+- **Immediately** after any purchase (building or upgrade)
+
+### On-Screen Display
+A compact floating panel shows:
+- **Best Overall** - The most efficient purchase (lowest PP)
+- **Best Affordable** - What you can buy right now (if different)
+- **[BUY]** indicator when you can afford the best item
+- Cookies needed if you're saving up
+
+### Example Display
+
 ```
-Cookie Clicker Optimizer
-Best Overall Purchase:
-  Wizard tower (Building)
-  PP: 234.56 | Cost: 1.23 billion
-  Save for this
-
-Best Affordable Purchase:
-  Farm (Building)
-  PP: 345.67 | Cost: 50.00 million
-  CAN BUY NOW
+┌─────────────────────────┐
+│ Optimizer            x  │
+├─────────────────────────┤
+│ BEST OVERALL            │
+│ Wizard tower x10        │
+│ PP: 234.5 · 1.23B       │
+│                         │
+│ BEST AFFORDABLE         │
+│ Farm                    │
+│ PP: 345.7 · 50.00M      │
+└─────────────────────────┘
 ```
 
 ## Files
