@@ -1,0 +1,17 @@
+{
+  "name": "cookies",
+  "version": "1.0.0",
+  "description": "A bookmarklet that tells you the most efficient purchase in Cookie Clicker by leveraging [Cookie Monster](https://github.com/CookieMonsterTeam/CookieMonster)'s payback period calculations.",
+  "main": "build-bookmarklet.js",
+  "scripts": {
+    "build": "node build-bookmarklet.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "terser": "^5.44.1"
+  }
+}
