@@ -85,11 +85,13 @@ Click the **Auto: OFF** button in the panel header to enable automatic purchasin
 - Toggle off at any time by clicking the button again (shows **Auto: ON** when active)
 - Disabled by default - you must explicitly enable it
 
-### Golden Cookie Auto-Clicker
+### Golden Cookie Mode
 
-Click the **Gold: OFF** button to enable automatic clicking of golden cookies. When enabled:
+Click the **Gold: OFF** button to enable golden cookie features. When enabled:
 
-- Golden cookies are clicked instantly when they appear (checks every 200ms)
+- **Auto-click**: Golden cookies are clicked instantly when they appear (checks every 200ms)
+- **Upgrade prioritization**: A "Golden Priority" section appears showing upgrades that reduce golden cookie spawn time (Lucky day, Serendipity, Get lucky, etc.)
+- When combined with **Auto: ON**, golden cookie upgrades are purchased first when affordable
 - A **Wrath: OFF** toggle appears to optionally include wrath cookies (red cookies during Grandmapocalypse)
 - Both toggles are disabled by default
 - Test with `new Game.shimmer('golden')` in the browser console to spawn a golden cookie
@@ -101,9 +103,10 @@ The optimizer automatically updates:
 
 ### On-Screen Display
 A compact floating panel shows:
+- **Golden Priority** - Golden cookie upgrades when Gold: ON (no PP value since benefits are random)
 - **Best Overall** - The most efficient purchase (lowest PP)
 - **Best Affordable** - What you can buy right now (if different)
-- **[BUY]** indicator when you can afford the best item
+- **[BUY]** indicator when you can afford an item
 - Cookies needed if you're saving up
 
 ### Example Display

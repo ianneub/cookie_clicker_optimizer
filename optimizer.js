@@ -15,6 +15,23 @@
   const POLL_INTERVAL = 500;  // Check every 500ms
   const REFRESH_INTERVAL = 2000; // Auto-refresh every 2 seconds
 
+  // Golden Cookie upgrades - these don't have PP values since benefits are random/probabilistic
+  // When Gold: ON, these are prioritized for purchase
+  const GOLDEN_COOKIE_UPGRADES = new Set([
+    'Lucky day',           // GC appear 2x often, last 2x longer
+    'Serendipity',         // GC appear 2x often, last 2x longer
+    'Get lucky',           // GC effects last 2x longer
+    'Golden goose egg',    // GC appear 5% more often
+    'Dragon fang',         // +3% golden cookie gains
+    'Heavenly luck',       // GC appear 5% more often (prestige)
+    'Lasting fortune',     // GC effects last 10% longer (prestige)
+    'Decisive fate',       // GC last 5% longer on screen (prestige)
+    'Lucky digit',         // Multi-effect (prestige)
+    'Lucky number',        // Multi-effect (prestige)
+    'Lucky payout',        // Multi-effect (prestige)
+    'Green yeast digestives'  // Multi-effect
+  ]);
+
   // Use global state so multiple bookmarklet clicks can access the same data
   window.CCOptimizer = window.CCOptimizer || {
     lastBuildingCount: 0,
@@ -173,6 +190,18 @@
       .cc-opt-saving {
         color: #ff9999;
       }
+      .cc-opt-golden-section {
+        background: linear-gradient(to right, rgba(255, 215, 0, 0.15), transparent);
+        border-left: 3px solid #ffd700;
+        padding-left: 7px;
+        margin-left: -7px;
+      }
+      .cc-opt-golden-label {
+        color: #ffd700 !important;
+      }
+      .cc-opt-golden-name {
+        color: #ffec8b !important;
+      }
     `;
     document.head.appendChild(style);
     document.body.appendChild(state.displayElement);
@@ -292,41 +321,60 @@
   /**
    * Update the display with current best purchase
    */
-  function updateDisplay(best, bestAffordable) {
-    const display = getDisplay();
+  function updateDisplay(best, bestAffordable, goldenUpgrades = []) {
+    getDisplay();
     const content = document.getElementById('cc-opt-content');
 
-    // Handle case where no valid best item
-    if (!best || typeof best.pp !== 'number') {
+    // Handle case where no valid best item and no golden upgrades
+    if ((!best || typeof best.pp !== 'number') && goldenUpgrades.length === 0) {
       if (content) content.innerHTML = '<div class="cc-opt-item">Calculating...</div>';
       return;
     }
 
     let html = '';
 
-    // Best overall
-    html += `<div class="cc-opt-item">`;
-    html += `<div class="cc-opt-label">Best Overall</div>`;
-    html += `<div class="cc-opt-name">${best.name}</div>`;
-    html += `<div class="cc-opt-stats">`;
-    html += `PP: ${best.pp.toFixed(1)} · ${formatNumber(best.price)}`;
-    if (best.affordable) {
-      html += ` <span class="cc-opt-affordable">[BUY]</span>`;
-    }
-    html += `</div></div>`;
-
-    // Best affordable (if different)
-    if (bestAffordable && bestAffordable !== best && typeof bestAffordable.pp === 'number') {
-      html += `<div class="cc-opt-item">`;
-      html += `<div class="cc-opt-label">Best Affordable</div>`;
-      html += `<div class="cc-opt-name cc-opt-affordable">${bestAffordable.name}</div>`;
+    // Golden Cookie upgrades section (when Gold: ON and upgrades available)
+    if (goldenUpgrades.length > 0) {
+      const firstGolden = goldenUpgrades[0];
+      html += `<div class="cc-opt-item cc-opt-golden-section">`;
+      html += `<div class="cc-opt-label cc-opt-golden-label">Golden Priority</div>`;
+      html += `<div class="cc-opt-name cc-opt-golden-name">${firstGolden.name}</div>`;
       html += `<div class="cc-opt-stats">`;
-      html += `PP: ${bestAffordable.pp.toFixed(1)} · ${formatNumber(bestAffordable.price)}`;
+      html += formatNumber(firstGolden.price);
+      if (firstGolden.affordable) {
+        html += ` <span class="cc-opt-affordable">[BUY]</span>`;
+      } else {
+        html += ` <span class="cc-opt-saving">(need ${formatNumber(firstGolden.price - Game.cookies)})</span>`;
+      }
       html += `</div></div>`;
-    } else if (!best.affordable) {
+    }
+
+    // Best overall (only show if we have valid PP data)
+    if (best && typeof best.pp === 'number') {
       html += `<div class="cc-opt-item">`;
-      html += `<div class="cc-opt-saving">Need ${formatNumber(best.price - Game.cookies)} more</div>`;
-      html += `</div>`;
+      html += `<div class="cc-opt-label">Best Overall</div>`;
+      html += `<div class="cc-opt-name">${best.name}</div>`;
+      html += `<div class="cc-opt-stats">`;
+      html += `PP: ${best.pp.toFixed(1)} · ${formatNumber(best.price)}`;
+      if (best.affordable) {
+        html += ` <span class="cc-opt-affordable">[BUY]</span>`;
+      }
+      html += `</div></div>`;
+
+      // Best affordable (if different)
+      if (bestAffordable && bestAffordable !== best && typeof bestAffordable.pp === 'number') {
+        html += `<div class="cc-opt-item">`;
+        html += `<div class="cc-opt-label">Best Affordable</div>`;
+        html += `<div class="cc-opt-name cc-opt-affordable">${bestAffordable.name}</div>`;
+        html += `<div class="cc-opt-stats">`;
+        html += `PP: ${bestAffordable.pp.toFixed(1)} · ${formatNumber(bestAffordable.price)}`;
+        html += `</div></div>`;
+      } else if (!best.affordable && goldenUpgrades.length === 0) {
+        // Only show "need more" if no golden section already shown
+        html += `<div class="cc-opt-item">`;
+        html += `<div class="cc-opt-saving">Need ${formatNumber(best.price - Game.cookies)} more</div>`;
+        html += `</div>`;
+      }
     }
 
     content.innerHTML = html;
@@ -385,6 +433,9 @@
     // Update tracking state
     state.lastBuildingCount = getTotalBuildings();
     state.lastUpgradeCount = getOwnedUpgrades();
+
+    // Find Golden Cookie upgrades when Gold: ON
+    const goldenUpgrades = findGoldenCookieUpgrades();
 
     const candidates = [];
 
@@ -453,14 +504,21 @@
     const bestAffordable = validCandidates.find(c => c.affordable);
 
     // Update the on-screen display
-    updateDisplay(best, bestAffordable);
+    updateDisplay(best, bestAffordable, goldenUpgrades);
 
-    // Auto-purchase if enabled and best item is affordable
-    if (state.autoPurchase && best && best.affordable) {
-      executePurchase(best);
+    // Auto-purchase logic
+    if (state.autoPurchase) {
+      // When Gold: ON, prioritize affordable Golden Cookie upgrades
+      const affordableGolden = goldenUpgrades.find(u => u.affordable);
+      if (state.autoGolden && affordableGolden) {
+        affordableGolden.gameUpgrade.buy();
+      } else if (best && best.affordable) {
+        // Otherwise buy the best PP-based item
+        executePurchase(best);
+      }
     }
 
-    return { best, bestAffordable };
+    return { best, bestAffordable, goldenUpgrades };
   }
 
   /**
@@ -494,6 +552,27 @@
     }
 
     return false;
+  }
+
+  /**
+   * Find available Golden Cookie upgrades in the store
+   * Returns array sorted by price (cheapest first)
+   */
+  function findGoldenCookieUpgrades() {
+    if (!state.autoGolden || typeof Game === 'undefined') return [];
+    const available = [];
+    for (const upgrade of Game.UpgradesInStore) {
+      if (GOLDEN_COOKIE_UPGRADES.has(upgrade.name)) {
+        available.push({
+          name: upgrade.name,
+          type: 'GoldenUpgrade',
+          price: upgrade.getPrice(),
+          affordable: Game.cookies >= upgrade.getPrice(),
+          gameUpgrade: upgrade
+        });
+      }
+    }
+    return available.sort((a, b) => a.price - b.price);
   }
 
   /**
