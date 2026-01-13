@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cookie Clicker Optimizer - Install</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e8e8e8;
+      min-height: 100vh;
+      margin: 0;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: #ffd700;
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #888;
+      margin-bottom: 2rem;
+    }
+
+    .install-section {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .install-section h2 {
+      color: #ffd700;
+      font-size: 1.1rem;
+      margin: 0 0 16px 0;
+    }
+
+    .bookmarklet-link {
+      display: inline-block;
+      background: linear-gradient(to bottom, #5a4020, #3a2810);
+      color: #ffd700;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1rem;
+      border: 2px solid #4a3000;
+      cursor: grab;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .bookmarklet-link:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+    }
+
+    .bookmarklet-link:active {
+      cursor: grabbing;
+    }
+
+    .drag-hint {
+      color: #888;
+      font-size: 0.85rem;
+      margin-top: 12px;
+    }
+
+    .copy-section {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .copy-btn {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #444;
+    }
+
+    .copy-btn.copied {
+      background: #2a5a2a;
+      border-color: #3a7a3a;
+    }
+
+    .instructions {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .instructions h2 {
+      color: #ffd700;
+      font-size: 1rem;
+      margin: 0 0 12px 0;
+    }
+
+    .instructions ol {
+      margin: 0;
+      padding-left: 20px;
+      color: #ccc;
+      line-height: 1.8;
+    }
+
+    .instructions a {
+      color: #ffd700;
+    }
+
+    .preview {
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    .preview img {
+      max-width: 100%;
+      border-radius: 8px;
+      border: 1px solid #333;
+    }
+
+    .preview-caption {
+      color: #888;
+      font-size: 0.85rem;
+      margin-top: 8px;
+    }
+
+    footer {
+      margin-top: 40px;
+      text-align: center;
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    footer a {
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Cookie Clicker Optimizer</h1>
+    <p class="subtitle">Automatically find the most efficient purchase using payback period calculations</p>
+
+    <div class="install-section">
+      <h2>Install Bookmarklet</h2>
+      <a class="bookmarklet-link" href="{{BOOKMARKLET}}">CC Optimizer</a>
+      <p class="drag-hint">Drag this button to your bookmarks bar</p>
+
+      <div class="copy-section">
+        <button class="copy-btn" onclick="copyBookmarklet()">Copy to clipboard</button>
+      </div>
+    </div>
+
+    <div class="instructions">
+      <h2>How to Use</h2>
+      <ol>
+        <li>Drag the button above to your bookmarks bar, or copy and create a new bookmark manually</li>
+        <li>Open <a href="https://orteil.dashnet.org/cookieclicker/" target="_blank">Cookie Clicker</a></li>
+        <li>Click the bookmarklet to start the optimizer</li>
+        <li>A floating panel will appear showing the best purchase</li>
+      </ol>
+    </div>
+
+    <div class="preview">
+      <img src="images/optimizer-panel.png" alt="Optimizer panel screenshot">
+      <p class="preview-caption">The optimizer panel shows the most efficient purchase based on payback period</p>
+    </div>
+
+    <footer>
+      <p>
+        <a href="https://github.com/ianneub/cookie_clicker_optimizer">View on GitHub</a>
+        | Powered by <a href="https://github.com/CookieMonsterTeam/CookieMonster">Cookie Monster</a>
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    const bookmarkletCode = '{{BOOKMARKLET}}';
+
+    function copyBookmarklet() {
+      navigator.clipboard.writeText(bookmarkletCode).then(function() {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = 'Copied!';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = 'Copy to clipboard';
+          btn.classList.remove('copied');
+        }, 2000);
+      }).catch(function() {
+        alert('Failed to copy. Please drag the bookmarklet button to your bookmarks bar instead.');
+      });
+    }
+  </script>
+</body>
+</html>

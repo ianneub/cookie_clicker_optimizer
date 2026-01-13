@@ -36,7 +36,11 @@ flowchart TD
 
 ## Installation
 
-### Option 1: Bookmarklet (Recommended)
+### Quick Install (Recommended)
+
+Visit the **[Installation Page](https://ianneub.github.io/cookie_clicker_optimizer/)** and drag the bookmarklet to your bookmarks bar.
+
+### Manual Installation
 
 1. Copy the entire contents of `bookmarklet.txt`
 2. In your browser, create a new bookmark
@@ -44,7 +48,7 @@ flowchart TD
 4. Paste the copied text as the bookmark URL
 5. Save the bookmark
 
-### Option 2: Browser Console
+### Browser Console
 
 1. Open Cookie Clicker in your browser
 2. Open Developer Tools (F12 or Ctrl+Shift+I)

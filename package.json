@@ -5,6 +5,8 @@
   "main": "build-bookmarklet.js",
   "scripts": {
     "build": "node build-bookmarklet.js",
+    "build:site": "node build-site.js",
+    "build:all": "npm run build && npm run build:site",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
