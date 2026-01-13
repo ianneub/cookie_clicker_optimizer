@@ -21,7 +21,10 @@
     lastUpgradeCount: 0,
     refreshTimer: null,
     isRunning: false,
-    displayElement: null
+    displayElement: null,
+    autoPurchase: false,  // Auto-buy best item when affordable (disabled by default)
+    autoGolden: false,    // Auto-click golden cookies (disabled by default)
+    autoWrath: false      // Also click wrath cookies when autoGolden is enabled (disabled by default)
   };
 
   const state = window.CCOptimizer;
@@ -39,7 +42,12 @@
     state.displayElement.innerHTML = `
       <div id="cc-opt-header">
         <span>Optimizer</span>
-        <span id="cc-opt-close">x</span>
+        <div id="cc-opt-controls">
+          <span id="cc-opt-auto">Auto: OFF</span>
+          <span id="cc-opt-golden">Gold: OFF</span>
+          <span id="cc-opt-wrath" style="display: none;">Wrath: OFF</span>
+          <span id="cc-opt-close">x</span>
+        </div>
       </div>
       <div id="cc-opt-content">Loading...</div>
     `;
@@ -71,6 +79,57 @@
         align-items: center;
         border-radius: 6px 6px 0 0;
         cursor: move;
+        gap: 12px;
+      }
+      #cc-opt-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      #cc-opt-auto {
+        cursor: pointer;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        background: #333;
+        color: #999;
+      }
+      #cc-opt-auto:hover {
+        background: #444;
+      }
+      #cc-opt-auto.active {
+        background: #2a5a2a;
+        color: #90EE90;
+      }
+      #cc-opt-golden {
+        cursor: pointer;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        background: #333;
+        color: #999;
+      }
+      #cc-opt-golden:hover {
+        background: #444;
+      }
+      #cc-opt-golden.active {
+        background: #5a4a2a;
+        color: #ffd700;
+      }
+      #cc-opt-wrath {
+        cursor: pointer;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 3px;
+        background: #333;
+        color: #999;
+      }
+      #cc-opt-wrath:hover {
+        background: #444;
+      }
+      #cc-opt-wrath.active {
+        background: #5a2a2a;
+        color: #ff6666;
       }
       #cc-opt-close {
         cursor: pointer;
@@ -123,10 +182,87 @@
       stopAutoRefresh();
     };
 
+    // Auto-purchase toggle button
+    const autoBtn = document.getElementById('cc-opt-auto');
+    updateAutoButton(autoBtn);
+    autoBtn.onclick = (e) => {
+      e.stopPropagation();
+      state.autoPurchase = !state.autoPurchase;
+      updateAutoButton(autoBtn);
+    };
+
+    // Golden cookie toggle button
+    const goldenBtn = document.getElementById('cc-opt-golden');
+    updateGoldenButton(goldenBtn);
+    goldenBtn.onclick = (e) => {
+      e.stopPropagation();
+      state.autoGolden = !state.autoGolden;
+      updateGoldenButton(goldenBtn);
+    };
+
+    // Wrath cookie toggle button
+    const wrathBtn = document.getElementById('cc-opt-wrath');
+    updateWrathButton(wrathBtn);
+    wrathBtn.onclick = (e) => {
+      e.stopPropagation();
+      state.autoWrath = !state.autoWrath;
+      updateWrathButton(wrathBtn);
+    };
+
     // Make draggable
     makeDraggable(state.displayElement, document.getElementById('cc-opt-header'));
 
     return state.displayElement;
+  }
+
+  /**
+   * Update the auto-purchase button display
+   */
+  function updateAutoButton(btn) {
+    if (!btn) btn = document.getElementById('cc-opt-auto');
+    if (!btn) return;
+    if (state.autoPurchase) {
+      btn.textContent = 'Auto: ON';
+      btn.classList.add('active');
+    } else {
+      btn.textContent = 'Auto: OFF';
+      btn.classList.remove('active');
+    }
+  }
+
+  /**
+   * Update the golden cookie button display
+   */
+  function updateGoldenButton(btn) {
+    if (!btn) btn = document.getElementById('cc-opt-golden');
+    if (!btn) return;
+    if (state.autoGolden) {
+      btn.textContent = 'Gold: ON';
+      btn.classList.add('active');
+    } else {
+      btn.textContent = 'Gold: OFF';
+      btn.classList.remove('active');
+    }
+    // Show/hide wrath button based on golden state
+    const wrathBtn = document.getElementById('cc-opt-wrath');
+    if (wrathBtn) {
+      wrathBtn.style.display = state.autoGolden ? 'inline' : 'none';
+    }
+  }
+
+  /**
+   * Update the wrath cookie button display
+   */
+  function updateWrathButton(btn) {
+    if (!btn) btn = document.getElementById('cc-opt-wrath');
+    if (!btn) return;
+    if (state.autoWrath) {
+      btn.textContent = 'Wrath: ON';
+      btn.classList.add('active');
+    } else {
+      btn.textContent = 'Wrath: OFF';
+      btn.classList.remove('active');
+    }
   }
 
   /**
@@ -307,7 +443,7 @@
 
     if (validCandidates.length === 0) {
       updateDisplay({ name: 'No items available', pp: 0, price: 0, affordable: false }, null);
-      return;
+      return { best: null, bestAffordable: null };
     }
 
     // Sort by PP (lower is better)
@@ -318,6 +454,62 @@
 
     // Update the on-screen display
     updateDisplay(best, bestAffordable);
+
+    // Auto-purchase if enabled and best item is affordable
+    if (state.autoPurchase && best && best.affordable) {
+      executePurchase(best);
+    }
+
+    return { best, bestAffordable };
+  }
+
+  /**
+   * Execute a purchase for the given item
+   */
+  function executePurchase(item) {
+    if (!item) return false;
+
+    if (item.type === 'Building') {
+      // Parse quantity from name (e.g., "Cursor x10" → building="Cursor", qty=10)
+      const match = item.name.match(/^(.+) x(\d+)$/);
+      if (match) {
+        const buildingName = match[1];
+        const quantity = parseInt(match[2], 10);
+        if (Game.Objects[buildingName]) {
+          Game.Objects[buildingName].buy(quantity);
+          return true;
+        }
+      } else {
+        // Single building purchase (no " xN" suffix)
+        if (Game.Objects[item.name]) {
+          Game.Objects[item.name].buy(1);
+          return true;
+        }
+      }
+    } else if (item.type === 'Upgrade') {
+      if (Game.Upgrades[item.name]) {
+        Game.Upgrades[item.name].buy();
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Click golden cookies (and optionally wrath cookies) if enabled
+   */
+  function clickGoldenCookies() {
+    if (!state.autoGolden || typeof Game === 'undefined' || !Game.shimmers) return;
+
+    for (const shimmer of Game.shimmers) {
+      if (shimmer.type === 'golden') {
+        // Click if it's a regular golden cookie, or if it's wrath and autoWrath is enabled
+        if (shimmer.wrath === 0 || state.autoWrath) {
+          shimmer.pop();
+        }
+      }
+    }
   }
 
   /**
@@ -426,6 +618,9 @@
     state.refreshTimer = setInterval(() => {
       const now = Date.now();
       const timeSinceLastCheck = now - lastCheck;
+
+      // Always check for golden cookies (runs every 200ms for responsiveness)
+      clickGoldenCookies();
 
       // Check for purchases every 200ms
       if (checkForPurchase()) {

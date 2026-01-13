@@ -26,6 +26,13 @@ This uses `build-bookmarklet.js` which:
 - `build-bookmarklet.js` - Build script using terser
 - `README.md` - User documentation
 
+## Documentation
+
+Always update `README.md` when making changes that affect user-facing functionality, such as:
+- Adding new features or controls
+- Changing existing behavior
+- Modifying the UI
+
 ## Dependencies
 
 - Cookie Monster addon is loaded automatically at runtime via `Game.LoadMod()`

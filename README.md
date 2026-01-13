@@ -39,12 +39,33 @@ The first time you run it, Cookie Monster will be automatically loaded if not al
 
 ### Controls
 
+- **Auto: OFF/ON** - Toggle automatic purchasing of the best item when affordable
+- **Gold: OFF/ON** - Toggle automatic clicking of golden cookies
+- **Wrath: OFF/ON** - Toggle automatic clicking of wrath cookies (only visible when Gold is ON)
 - **Click bookmarklet again** - Toggle off (stops and removes panel)
 - **Drag the header** - Move the panel anywhere on screen
 - **Click X** - Close the panel
 - **`CCOptimizerStop()`** - Stop from console
 
 ## Features
+
+### Auto-Purchase Mode
+
+Click the **Auto: OFF** button in the panel header to enable automatic purchasing. When enabled:
+
+- The optimizer will automatically buy the **best overall** item as soon as you can afford it
+- Purchases happen instantly with no delay
+- Toggle off at any time by clicking the button again (shows **Auto: ON** when active)
+- Disabled by default - you must explicitly enable it
+
+### Golden Cookie Auto-Clicker
+
+Click the **Gold: OFF** button to enable automatic clicking of golden cookies. When enabled:
+
+- Golden cookies are clicked instantly when they appear (checks every 200ms)
+- A **Wrath: OFF** toggle appears to optionally include wrath cookies (red cookies during Grandmapocalypse)
+- Both toggles are disabled by default
+- Test with `new Game.shimmer('golden')` in the browser console to spawn a golden cookie
 
 ### Auto-Refresh
 The optimizer automatically updates:
@@ -61,17 +82,17 @@ A compact floating panel shows:
 ### Example Display
 
 ```
-┌─────────────────────────┐
-│ Optimizer            x  │
-├─────────────────────────┤
+┌──────────────────────────────┐
+│ Optimizer    [Auto: OFF]  x  │
+├──────────────────────────────┤
 │ BEST OVERALL            │
 │ Wizard tower x10        │
 │ PP: 234.5 · 1.23B       │
 │                         │
 │ BEST AFFORDABLE         │
 │ Farm                    │
-│ PP: 345.7 · 50.00M      │
-└─────────────────────────┘
+│ PP: 345.7 · 50.00M           │
+└──────────────────────────────┘
 ```
 
 ## Files
