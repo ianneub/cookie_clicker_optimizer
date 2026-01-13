@@ -17,8 +17,22 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 const template = fs.readFileSync(TEMPLATE, 'utf8');
 const bookmarklet = fs.readFileSync(BOOKMARKLET, 'utf8').trim();
 
-// Replace placeholder
-const html = template.replace(/\{\{BOOKMARKLET\}\}/g, bookmarklet);
+// HTML-encode for use in href attribute (prevents browser from rendering embedded text)
+const bookmarkletHref = bookmarklet
+  .replace(/&/g, '&amp;')
+  .replace(/"/g, '&quot;');
+
+// Escape for use inside a JavaScript single-quoted string
+const bookmarkletJS = bookmarklet
+  .replace(/\\/g, '\\\\')
+  .replace(/'/g, "\\'");
+
+// Replace placeholders
+// {{BOOKMARKLET}} - HTML-encoded for href attribute
+// {{BOOKMARKLET_JS}} - escaped for JavaScript string
+const html = template
+  .replace(/\{\{BOOKMARKLET\}\}/g, bookmarkletHref)
+  .replace(/\{\{BOOKMARKLET_JS\}\}/g, bookmarkletJS);
 
 // Write output
 fs.writeFileSync(OUTPUT, html);
