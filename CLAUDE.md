@@ -33,6 +33,20 @@ Always update `README.md` when making changes that affect user-facing functional
 - Changing existing behavior
 - Modifying the UI
 
+### Mermaid Diagrams
+
+GitHub supports Mermaid diagrams in markdown. Use them to visualize flows and architecture:
+
+````markdown
+```mermaid
+flowchart TD
+    A[Start] --> B[Process]
+    B --> C[End]
+```
+````
+
+See [Mermaid documentation](https://mermaid.js.org/intro/) for syntax.
+
 ## Dependencies
 
 - Cookie Monster addon is loaded automatically at runtime via `Game.LoadMod()`

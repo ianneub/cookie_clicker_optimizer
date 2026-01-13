@@ -11,6 +11,29 @@ The optimizer uses Cookie Monster's **Payback Period (PP)** metric to rank all a
 
 **Lower PP = Better purchase**
 
+```mermaid
+flowchart TD
+    A[Start Optimizer] --> B{Cookie Monster loaded?}
+    B -->|No| C[Load Cookie Monster]
+    C --> D[Wait for initialization]
+    D --> B
+    B -->|Yes| E[Start refresh loop]
+    E --> F[Every 200ms]
+    F --> G[Click golden cookies if enabled]
+    G --> H{Purchase detected?}
+    H -->|Yes| I[Find best purchase]
+    H -->|No| J{2 seconds elapsed?}
+    J -->|Yes| I
+    J -->|No| F
+    I --> K[Update display]
+    K --> L{Auto-purchase enabled?}
+    L -->|Yes| M{Best item affordable?}
+    M -->|Yes| N[Buy best item]
+    M -->|No| F
+    L -->|No| F
+    N --> F
+```
+
 ## Installation
 
 ### Option 1: Bookmarklet (Recommended)
@@ -81,19 +104,7 @@ A compact floating panel shows:
 
 ### Example Display
 
-```
-┌──────────────────────────────┐
-│ Optimizer    [Auto: OFF]  x  │
-├──────────────────────────────┤
-│ BEST OVERALL            │
-│ Wizard tower x10        │
-│ PP: 234.5 · 1.23B       │
-│                         │
-│ BEST AFFORDABLE         │
-│ Farm                    │
-│ PP: 345.7 · 50.00M           │
-└──────────────────────────────┘
-```
+![Optimizer Panel](images/optimizer-panel.png)
 
 ## Files
 
