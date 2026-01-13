@@ -7,13 +7,17 @@
     "build": "node build-bookmarklet.js",
     "build:site": "node build-site.js",
     "build:all": "npm run build && npm run build:site",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
     "terser": "^5.44.1"
   }
 }
