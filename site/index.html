@@ -147,6 +147,27 @@
       animation: slideDown 0.6s ease-out 0.2s backwards;
     }
 
+    .github-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 1rem;
+      padding: 0.5rem 1rem;
+      background: rgba(255, 255, 255, 0.15);
+      color: var(--cream);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      border-radius: 10px;
+      transition: all 0.2s ease;
+      animation: slideDown 0.6s ease-out 0.3s backwards;
+    }
+
+    .github-link:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+    }
+
     /* Main content */
     .main-content {
       max-width: 640px;
@@ -522,6 +543,9 @@
         <h1>Cookie Clicker Optimizer</h1>
       </div>
       <p class="tagline">Maximize your cookie empire with smart purchasing decisions</p>
+      <a href="https://github.com/ianneub/cookie_clicker_optimizer" class="github-link">
+        <span>📖</span> Learn more on GitHub
+      </a>
     </div>
   </header>
 
