@@ -21,7 +21,7 @@ flowchart TD
     D --> B
     B -->|Yes| E[Start refresh loop]
     E --> F[Every 200ms]
-    F --> G[Click golden cookies if enabled]
+    F --> G[Click golden/wrath cookies if enabled]
     G --> H{Purchase detected?}
     H -->|Yes| I[Find best purchase]
     H -->|No| J{2 seconds elapsed?}
@@ -29,11 +29,14 @@ flowchart TD
     J -->|No| F
     I --> K[Update display]
     K --> L{Auto-purchase enabled?}
-    L -->|Yes| M{Best item affordable?}
-    M -->|Yes| N[Buy best item]
-    M -->|No| F
     L -->|No| F
+    L -->|Yes| M{Gold ON & golden upgrade affordable?}
+    M -->|Yes| N[Buy golden upgrade]
+    M -->|No| O{Best item affordable?}
+    O -->|Yes| P[Buy best item]
+    O -->|No| F
     N --> F
+    P --> F
 ```
 
 ## Installation
