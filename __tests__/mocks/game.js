@@ -38,7 +38,8 @@ function createGameMock(options = {}) {
     upgrades = {},
     upgradesInStore = [],
     upgradesOwned = 0,
-    shimmers = []
+    shimmers = [],
+    buffs = {}
   } = options;
 
   // Default buildings if not provided
@@ -71,6 +72,7 @@ function createGameMock(options = {}) {
     UpgradesInStore: upgradesInStore,
     UpgradesOwned: upgradesOwned,
     shimmers,
+    buffs,
     LoadMod: jest.fn(),
     mods: {}
   };

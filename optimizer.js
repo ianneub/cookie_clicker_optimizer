@@ -77,6 +77,56 @@
     return GOLDEN_COOKIE_UPGRADES.has(upgradeName);
   }
 
+  /**
+   * Calculate the Lucky bank threshold needed to maximize Lucky + Frenzy rewards
+   * Bank of 42,000 x CpS ensures you get max reward from Lucky during Frenzy
+   * @param {number} baseCpS - Base cookies per second (unbuffed)
+   * @returns {number} Optimal bank amount
+   */
+  function calculateLuckyBank(baseCpS) {
+    return 42000 * baseCpS;
+  }
+
+  /**
+   * Get the base (unbuffed) CpS from current CpS by dividing out active buffs
+   * @param {number} currentCpS - Current cookies per second
+   * @param {Object} buffs - Game.buffs object containing active buffs
+   * @returns {number} Base CpS without buff multipliers
+   */
+  function getBaseCpS(currentCpS, buffs) {
+    if (!buffs) return currentCpS;
+
+    let divisor = 1;
+
+    // Divide out CpS multiplier buffs
+    if (buffs['Frenzy']) {
+      divisor *= buffs['Frenzy'].multCpS || 7;
+    }
+    if (buffs['Dragon Harvest']) {
+      divisor *= buffs['Dragon Harvest'].multCpS || 15;
+    }
+    if (buffs['Elder frenzy']) {
+      divisor *= buffs['Elder frenzy'].multCpS || 666;
+    }
+    // Clot reduces CpS (multiplier < 1)
+    if (buffs['Clot']) {
+      divisor *= buffs['Clot'].multCpS || 0.5;
+    }
+
+    return currentCpS / divisor;
+  }
+
+  /**
+   * Check if a purchase would drop cookies below the Lucky bank threshold
+   * @param {number} currentCookies - Current cookie count
+   * @param {number} price - Price of the item
+   * @param {number} luckyBank - Lucky bank threshold
+   * @returns {boolean} True if purchase keeps cookies at or above bank threshold
+   */
+  function canAffordWithLuckyBank(currentCookies, price, luckyBank) {
+    return currentCookies - price >= luckyBank;
+  }
+
   // ===== FUNCTIONS WITH SIMPLE DEPENDENCIES (need mocking for tests) =====
 
   /**
@@ -212,6 +262,9 @@
     formatNumber,
     filterAndSortCandidates,
     isGoldenCookieUpgrade,
+    calculateLuckyBank,
+    getBaseCpS,
+    canAffordWithLuckyBank,
 
     // Functions with dependencies
     getTotalBuildings,
@@ -262,6 +315,10 @@
             <span id="cc-opt-wrath" style="display: none;">Wrath: OFF</span>
             <span id="cc-opt-close">x</span>
           </div>
+        </div>
+        <div id="cc-opt-lucky-bank" style="display: none;">
+          <span class="cc-opt-lucky-label">Lucky Bank: </span>
+          <span id="cc-opt-lucky-value">0</span>
         </div>
         <div id="cc-opt-content">Loading...</div>
       `;
@@ -399,6 +456,21 @@
         .cc-opt-golden-name {
           color: #ffec8b !important;
         }
+        #cc-opt-lucky-bank {
+          background: linear-gradient(to right, rgba(255, 215, 0, 0.1), transparent);
+          padding: 4px 10px;
+          border-bottom: 1px solid #333;
+          font-size: 11px;
+        }
+        .cc-opt-lucky-label {
+          color: #ffd700;
+        }
+        #cc-opt-lucky-value {
+          color: #90EE90;
+        }
+        #cc-opt-lucky-value.below-threshold {
+          color: #ff6666;
+        }
       `;
       document.head.appendChild(style);
       document.body.appendChild(state.displayElement);
@@ -492,6 +564,33 @@
     }
 
     /**
+     * Update the Lucky bank display in the UI
+     * @param {number} luckyBank - The Lucky bank threshold
+     * @param {number} currentCookies - Current cookie count
+     */
+    function updateLuckyBankDisplay(luckyBank, currentCookies) {
+      const bankEl = document.getElementById('cc-opt-lucky-bank');
+      const valueEl = document.getElementById('cc-opt-lucky-value');
+
+      if (!bankEl || !valueEl) return;
+
+      if (state.autoGolden) {
+        bankEl.style.display = 'block';
+        const bankText = formatNumber(luckyBank);
+
+        if (currentCookies < luckyBank) {
+          valueEl.textContent = bankText + ' (need ' + formatNumber(luckyBank - currentCookies) + ')';
+          valueEl.classList.add('below-threshold');
+        } else {
+          valueEl.textContent = bankText + ' (+' + formatNumber(currentCookies - luckyBank) + ')';
+          valueEl.classList.remove('below-threshold');
+        }
+      } else {
+        bankEl.style.display = 'none';
+      }
+    }
+
+    /**
      * Make an element draggable
      */
     function makeDraggable(element, handle) {
@@ -517,8 +616,12 @@
 
     /**
      * Update the display with current best purchase
+     * @param {Object} best - Best overall item by PP
+     * @param {Object} bestAffordable - Best affordable item by PP
+     * @param {Array} goldenUpgrades - Available golden cookie upgrades
+     * @param {number} luckyBank - Lucky bank threshold (0 if Gold: OFF)
      */
-    function updateDisplay(best, bestAffordable, goldenUpgrades = []) {
+    function updateDisplay(best, bestAffordable, goldenUpgrades = [], luckyBank = 0) {
       getDisplay();
       const content = document.getElementById('cc-opt-content');
 
@@ -533,15 +636,19 @@
       // Golden Cookie upgrades section (when Gold: ON and upgrades available)
       if (goldenUpgrades.length > 0) {
         const firstGolden = goldenUpgrades[0];
+        // Recalculate affordability with Lucky bank protection
+        const isAffordable = canAffordWithLuckyBank(Game.cookies, firstGolden.price, luckyBank);
         html += `<div class="cc-opt-item cc-opt-golden-section">`;
         html += `<div class="cc-opt-label cc-opt-golden-label">Golden Priority</div>`;
         html += `<div class="cc-opt-name cc-opt-golden-name">${firstGolden.name}</div>`;
         html += `<div class="cc-opt-stats">`;
         html += formatNumber(firstGolden.price);
-        if (firstGolden.affordable) {
+        if (isAffordable) {
           html += ` <span class="cc-opt-affordable">[BUY]</span>`;
         } else {
-          html += ` <span class="cc-opt-saving">(need ${formatNumber(firstGolden.price - Game.cookies)})</span>`;
+          // Show how much more needed (price + luckyBank - current cookies)
+          const needed = (firstGolden.price + luckyBank) - Game.cookies;
+          html += ` <span class="cc-opt-saving">(need ${formatNumber(needed)})</span>`;
         }
         html += `</div></div>`;
       }
@@ -645,6 +752,17 @@
       // Find Golden Cookie upgrades when Gold: ON
       const goldenUpgrades = findGoldenCookieUpgrades();
 
+      // Calculate Lucky bank threshold when Gold: ON
+      let luckyBank = 0;
+      if (state.autoGolden) {
+        const baseCpS = getBaseCpS(Game.cookiesPs, Game.buffs);
+        luckyBank = calculateLuckyBank(baseCpS);
+        updateLuckyBankDisplay(luckyBank, Game.cookies);
+      } else {
+        // Hide Lucky bank display when Gold: OFF
+        updateLuckyBankDisplay(0, 0);
+      }
+
       const candidates = [];
 
       // Collect building PP values (Objects1 = buy 1, Objects10 = buy 10, Objects100 = buy 100)
@@ -666,12 +784,16 @@
           if (gameBuilding && !gameBuilding.locked && building.pp !== undefined) {
             // Calculate price for buying this amount
             const price = gameBuilding.getSumPrice(amount);
+            // When Gold: ON, only mark affordable if it keeps us above Lucky bank threshold
+            const isAffordable = state.autoGolden
+              ? canAffordWithLuckyBank(Game.cookies, price, luckyBank)
+              : Game.cookies >= price;
             candidates.push({
               name: name + (amount > 1 ? ' x' + amount : ''),
               type: 'Building',
               pp: building.pp,
               price: price,
-              affordable: Game.cookies >= price
+              affordable: isAffordable
             });
           }
         }
@@ -685,12 +807,16 @@
         // Only consider upgrades that are in the store (available for purchase)
         if (gameUpgrade && Game.UpgradesInStore.includes(gameUpgrade) && upgrade.pp !== undefined) {
           const price = gameUpgrade.getPrice();
+          // When Gold: ON, only mark affordable if it keeps us above Lucky bank threshold
+          const isAffordable = state.autoGolden
+            ? canAffordWithLuckyBank(Game.cookies, price, luckyBank)
+            : Game.cookies >= price;
           candidates.push({
             name: name,
             type: 'Upgrade',
             pp: upgrade.pp,
             price: price,
-            affordable: Game.cookies >= price
+            affordable: isAffordable
           });
         }
       }
@@ -707,16 +833,18 @@
       const bestAffordable = validCandidates.find(c => c.affordable);
 
       // Update the on-screen display
-      updateDisplay(best, bestAffordable, goldenUpgrades);
+      updateDisplay(best, bestAffordable, goldenUpgrades, luckyBank);
 
       // Auto-purchase logic
       if (state.autoPurchase) {
-        // When Gold: ON, prioritize affordable Golden Cookie upgrades
-        const affordableGolden = goldenUpgrades.find(u => u.affordable);
+        // When Gold: ON, prioritize affordable Golden Cookie upgrades (respecting Lucky bank)
+        const affordableGolden = goldenUpgrades.find(u =>
+          canAffordWithLuckyBank(Game.cookies, u.price, luckyBank)
+        );
         if (state.autoGolden && affordableGolden) {
           affordableGolden.gameUpgrade.buy();
         } else if (best && best.affordable) {
-          // Otherwise buy the best PP-based item
+          // Otherwise buy the best PP-based item (affordable already respects Lucky bank)
           executePurchase(best);
         }
       }

@@ -96,10 +96,22 @@ Click the **Gold: OFF** button to enable golden cookie features. When enabled:
 
 - **Auto-click**: Golden cookies are clicked instantly when they appear (checks every 200ms)
 - **Upgrade prioritization**: A "Golden Priority" section appears showing upgrades that reduce golden cookie spawn time (Lucky day, Serendipity, Get lucky, etc.)
+- **Lucky Bank Protection**: See below for details
 - When combined with **Auto: ON**, golden cookie upgrades are purchased first when affordable
 - A **Wrath: OFF** toggle appears to optionally include wrath cookies (red cookies during Grandmapocalypse)
 - Both toggles are disabled by default
 - Test with `new Game.shimmer('golden')` in the browser console to spawn a golden cookie
+
+### Lucky Bank Protection
+
+When **Gold: ON**, the optimizer protects a "Lucky bank" of cookies to maximize rewards from Lucky + Frenzy golden cookie combos:
+
+- **Lucky Bank threshold**: Displayed below the header (42,000 × base CpS)
+- **Protected purchases**: Items are only marked affordable if buying them keeps your cookies above the threshold
+- **Visual indicator**: Shows green when above threshold (+surplus), red when below (need X more)
+- **Auto-purchase respects bank**: When Auto: ON, purchases won't drop you below the threshold
+
+**Why 42,000× CpS?** The Lucky golden cookie effect gives you `min(15% of bank, 900 × CpS)`. During a Frenzy (7× CpS), to get the maximum reward (6,300 × base CpS), you need 42,000 × base CpS banked. This ensures you always get the full benefit from Lucky + Frenzy combos, which are a major source of cookies in mid-to-late game.
 
 ### Auto-Refresh
 The optimizer automatically updates:
