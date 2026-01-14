@@ -83,17 +83,36 @@
   }
 
   /**
-   * Get the Lucky bank threshold from Cookie Monster's cache
+   * Get the base Lucky bank threshold from Cookie Monster's cache (unscaled)
    * Uses 6000x CpS - the bank needed for max Lucky reward (without Frenzy)
    * @param {Object} cmCache - CookieMonsterData.Cache object
    * @param {number} cps - Current CpS as fallback
-   * @returns {number} Lucky bank threshold
+   * @returns {number} Base Lucky bank threshold (before phase scaling)
    */
-  function getLuckyBank(cmCache, cps) {
+  function getBaseLuckyBank(cmCache, cps) {
     if (cmCache && typeof cmCache.Lucky === 'number' && cmCache.Lucky > 0) {
       return cmCache.Lucky;
     }
     return 6000 * cps;
+  }
+
+  /**
+   * Get the phase-scaled Lucky bank threshold
+   * In early game, returns 0 (no protection). Scales up through mid game.
+   * @param {Object} cmCache - CookieMonsterData.Cache object
+   * @param {number} cps - Current CpS
+   * @returns {Object} { scaled: number, base: number, phaseProgress: number, phaseName: string }
+   */
+  function getLuckyBank(cmCache, cps) {
+    const base = getBaseLuckyBank(cmCache, cps);
+    const phaseProgress = calculatePhaseProgress(cps);
+    const scaled = getScaledLuckyBank(base, phaseProgress);
+    return {
+      scaled,
+      base,
+      phaseProgress,
+      phaseName: getPhaseName(phaseProgress)
+    };
   }
 
   /**
@@ -105,6 +124,139 @@
    */
   function canAffordWithLuckyBank(currentCookies, price, luckyBank) {
     return currentCookies - price >= luckyBank;
+  }
+
+  // ===== PHASE DETECTION FUNCTIONS =====
+
+  // Phase thresholds for game progression (based on CpS)
+  const PHASE_THRESHOLDS = {
+    EARLY_TO_MID: 100000,       // 100K CpS
+    MID_TO_LATE: 10000000,      // 10M CpS
+    LATE_TO_ENDGAME: 1000000000 // 1B CpS
+  };
+
+  /**
+   * Smoothstep interpolation function for smooth transitions
+   * Returns 0 when x <= edge0, 1 when x >= edge1, smooth curve between
+   * @param {number} x - Input value
+   * @param {number} edge0 - Lower edge
+   * @param {number} edge1 - Upper edge
+   * @returns {number} Interpolated value between 0 and 1
+   */
+  function smoothstep(x, edge0, edge1) {
+    const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+    return t * t * (3 - 2 * t);
+  }
+
+  /**
+   * Calculate game phase progress from 0.0 (very early) to 1.0 (endgame)
+   * Uses logarithmic scale for smooth progression through exponential CpS growth
+   * @param {number} cps - Current cookies per second
+   * @returns {number} Phase progress from 0 to 1
+   */
+  function calculatePhaseProgress(cps) {
+    if (cps <= 0) return 0;
+
+    const EARLY_THRESHOLD = PHASE_THRESHOLDS.EARLY_TO_MID;     // 100K CpS
+    const LATE_THRESHOLD = PHASE_THRESHOLDS.MID_TO_LATE;       // 10M CpS
+    const ENDGAME_THRESHOLD = PHASE_THRESHOLDS.LATE_TO_ENDGAME; // 1B CpS
+
+    if (cps <= EARLY_THRESHOLD) {
+      // Early game: 0.0 to 0.33
+      return (Math.log10(cps) / Math.log10(EARLY_THRESHOLD)) * 0.33;
+    } else if (cps <= LATE_THRESHOLD) {
+      // Mid game: 0.33 to 0.66
+      const midProgress = (Math.log10(cps) - Math.log10(EARLY_THRESHOLD)) /
+                          (Math.log10(LATE_THRESHOLD) - Math.log10(EARLY_THRESHOLD));
+      return 0.33 + (midProgress * 0.33);
+    } else {
+      // Late/Endgame: 0.66 to 1.0 (caps at endgame threshold)
+      const lateProgress = Math.min(1,
+        (Math.log10(cps) - Math.log10(LATE_THRESHOLD)) /
+        (Math.log10(ENDGAME_THRESHOLD) - Math.log10(LATE_THRESHOLD)));
+      return 0.66 + (lateProgress * 0.34);
+    }
+  }
+
+  /**
+   * Get human-readable phase name
+   * @param {number} phaseProgress - Phase progress from 0 to 1
+   * @returns {string} Phase name: "Early", "Mid", "Late", or "Endgame"
+   */
+  function getPhaseName(phaseProgress) {
+    if (phaseProgress < 0.33) return 'Early';
+    if (phaseProgress < 0.66) return 'Mid';
+    if (phaseProgress < 0.9) return 'Late';
+    return 'Endgame';
+  }
+
+  /**
+   * Calculate scaled Lucky bank based on game phase
+   * Early game has no protection, scales up through mid game, full protection in late game
+   * @param {number} baseLuckyBank - Base Lucky bank from Cookie Monster or fallback
+   * @param {number} phaseProgress - Game phase progress (0-1)
+   * @returns {number} Scaled Lucky bank threshold
+   */
+  function getScaledLuckyBank(baseLuckyBank, phaseProgress) {
+    // Scale starts at 0% for progress < 0.25, reaches 100% at progress >= 0.75
+    const scale = smoothstep(phaseProgress, 0.25, 0.75);
+    return Math.floor(baseLuckyBank * scale);
+  }
+
+  /**
+   * Get maximum hours willing to save for golden upgrades based on phase
+   * Early game: 0.5 hours max (focus on CpS growth)
+   * Mid game: scales from 0.5 to 4 hours
+   * Late game: scales from 4 to 12 hours (golden combos are major income)
+   * @param {number} phaseProgress - Game phase progress (0-1)
+   * @returns {number} Maximum hours to save for golden upgrades
+   */
+  function getMaxGoldenSaveHours(phaseProgress) {
+    if (phaseProgress < 0.33) {
+      return 0.5;  // Early game: 30 minutes max
+    } else if (phaseProgress < 0.66) {
+      // Mid game: scale from 0.5 to 4 hours
+      const t = (phaseProgress - 0.33) / 0.33;
+      return 0.5 + (t * 3.5);
+    } else {
+      // Late game: scale from 4 to 12 hours
+      const t = (phaseProgress - 0.66) / 0.34;
+      return 4 + (t * 8);
+    }
+  }
+
+  /**
+   * Evaluate if a golden upgrade should be prioritized based on game phase
+   * @param {number} phaseProgress - Game phase progress (0-1)
+   * @param {number} price - Upgrade price
+   * @param {number} currentCpS - Current cookies per second
+   * @returns {Object} { shouldPrioritize: boolean, reason: string, hoursToAfford: number }
+   */
+  function evaluateGoldenUpgradePriority(phaseProgress, price, currentCpS) {
+    if (currentCpS <= 0) {
+      return {
+        shouldPrioritize: false,
+        reason: 'No CpS',
+        hoursToAfford: Infinity
+      };
+    }
+
+    const hoursToAfford = price / (currentCpS * 3600);
+    const maxHours = getMaxGoldenSaveHours(phaseProgress);
+
+    if (hoursToAfford > maxHours) {
+      return {
+        shouldPrioritize: false,
+        reason: `${hoursToAfford.toFixed(1)}h > ${maxHours.toFixed(1)}h limit`,
+        hoursToAfford
+      };
+    }
+
+    return {
+      shouldPrioritize: true,
+      reason: `${hoursToAfford.toFixed(1)}h affordable`,
+      hoursToAfford
+    };
   }
 
   // ===== FUNCTIONS WITH SIMPLE DEPENDENCIES (need mocking for tests) =====
@@ -170,26 +322,38 @@
   }
 
   /**
-   * Find golden cookie upgrades in store
+   * Find golden cookie upgrades in store with phase-aware priority
    * @param {Array} upgradesInStore - Array of upgrade objects in store
    * @param {number} currentCookies - Current cookie count
-   * @returns {Array} Array of golden upgrade objects sorted by price
+   * @param {number} currentCpS - Current cookies per second
+   * @param {number} phaseProgress - Game phase progress (0-1)
+   * @returns {Array} Array of golden upgrade objects sorted by priority then price
    */
-  function findGoldenUpgradesInStore(upgradesInStore, currentCookies) {
+  function findGoldenUpgradesInStore(upgradesInStore, currentCookies, currentCpS, phaseProgress) {
     const available = [];
     for (const upgrade of upgradesInStore) {
       if (GOLDEN_COOKIE_UPGRADES.has(upgrade.name)) {
         const price = upgrade.getPrice();
+        const evaluation = evaluateGoldenUpgradePriority(phaseProgress, price, currentCpS);
         available.push({
           name: upgrade.name,
           type: 'GoldenUpgrade',
           price: price,
           affordable: currentCookies >= price,
+          prioritized: evaluation.shouldPrioritize,
+          deferReason: evaluation.reason,
+          hoursToAfford: evaluation.hoursToAfford,
           gameUpgrade: upgrade
         });
       }
     }
-    return available.sort((a, b) => a.price - b.price);
+    // Sort: prioritized first, then by price
+    return available.sort((a, b) => {
+      if (a.prioritized !== b.prioritized) {
+        return a.prioritized ? -1 : 1;
+      }
+      return a.price - b.price;
+    });
   }
 
   /**
@@ -237,14 +401,24 @@
     MAX_WAIT_TIME,
     POLL_INTERVAL,
     REFRESH_INTERVAL,
+    PHASE_THRESHOLDS,
 
     // Pure functions
     formatNumber,
     logAction,
     filterAndSortCandidates,
     isGoldenCookieUpgrade,
+    getBaseLuckyBank,
     getLuckyBank,
     canAffordWithLuckyBank,
+
+    // Phase detection functions
+    smoothstep,
+    calculatePhaseProgress,
+    getPhaseName,
+    getScaledLuckyBank,
+    getMaxGoldenSaveHours,
+    evaluateGoldenUpgradePriority,
 
     // Functions with dependencies
     getTotalBuildings,
@@ -436,6 +610,17 @@
         .cc-opt-golden-name {
           color: #ffec8b !important;
         }
+        .cc-opt-golden-deferred {
+          opacity: 0.6;
+          border-left-color: #888;
+          background: linear-gradient(to right, rgba(128, 128, 128, 0.1), transparent);
+        }
+        .cc-opt-golden-deferred .cc-opt-golden-label {
+          color: #aaa !important;
+        }
+        .cc-opt-golden-deferred .cc-opt-golden-name {
+          color: #ccc !important;
+        }
         #cc-opt-lucky-bank {
           background: linear-gradient(to right, rgba(255, 215, 0, 0.1), transparent);
           padding: 4px 10px;
@@ -545,29 +730,39 @@
 
     /**
      * Update the Lucky bank display in the UI
-     * @param {number} luckyBank - The Lucky bank threshold
+     * @param {Object|number} luckyBankInfo - Lucky bank info object or 0 to hide
      * @param {number} currentCookies - Current cookie count
      */
-    function updateLuckyBankDisplay(luckyBank, currentCookies) {
+    function updateLuckyBankDisplay(luckyBankInfo, currentCookies) {
       const bankEl = document.getElementById('cc-opt-lucky-bank');
       const valueEl = document.getElementById('cc-opt-lucky-value');
 
       if (!bankEl || !valueEl) return;
 
-      if (state.autoGolden) {
-        bankEl.style.display = 'block';
-        const bankText = formatNumber(luckyBank);
-
-        if (currentCookies < luckyBank) {
-          valueEl.textContent = bankText + ' (need ' + formatNumber(luckyBank - currentCookies) + ')';
-          valueEl.classList.add('below-threshold');
-        } else {
-          valueEl.textContent = bankText + ' (+' + formatNumber(currentCookies - luckyBank) + ')';
-          valueEl.classList.remove('below-threshold');
-        }
-      } else {
+      // Handle hide case (luckyBankInfo === 0)
+      if (luckyBankInfo === 0 || !state.autoGolden) {
         bankEl.style.display = 'none';
+        return;
       }
+
+      bankEl.style.display = 'block';
+      const { scaled, base, phaseName } = luckyBankInfo;
+      const scalePercent = base > 0 ? Math.round((scaled / base) * 100) : 0;
+
+      // Build display text with phase info
+      let displayText = '';
+      if (scaled === 0) {
+        displayText = `${phaseName} phase (0% bank)`;
+        valueEl.classList.remove('below-threshold');
+      } else if (currentCookies < scaled) {
+        displayText = `${formatNumber(scaled)} (need ${formatNumber(scaled - currentCookies)}) [${phaseName} ${scalePercent}%]`;
+        valueEl.classList.add('below-threshold');
+      } else {
+        displayText = `${formatNumber(scaled)} (+${formatNumber(currentCookies - scaled)}) [${phaseName} ${scalePercent}%]`;
+        valueEl.classList.remove('below-threshold');
+      }
+
+      valueEl.textContent = displayText;
     }
 
     /**
@@ -599,9 +794,9 @@
      * @param {Object} best - Best overall item by PP
      * @param {Object} bestAffordable - Best affordable item by PP
      * @param {Array} goldenUpgrades - Available golden cookie upgrades
-     * @param {number} luckyBank - Lucky bank threshold (0 if Gold: OFF)
+     * @param {number} luckyBankScaled - Scaled Lucky bank threshold (0 if Gold: OFF)
      */
-    function updateDisplay(best, bestAffordable, goldenUpgrades = [], luckyBank = 0) {
+    function updateDisplay(best, bestAffordable, goldenUpgrades = [], luckyBankScaled = 0) {
       getDisplay();
       const content = document.getElementById('cc-opt-content');
 
@@ -614,10 +809,14 @@
       let html = '';
 
       // Golden Cookie upgrades section (when Gold: ON and upgrades available)
-      if (goldenUpgrades.length > 0) {
-        const firstGolden = goldenUpgrades[0];
+      // Only show prioritized upgrades prominently; deferred ones are shown differently
+      const prioritizedGolden = goldenUpgrades.filter(u => u.prioritized);
+      const deferredGolden = goldenUpgrades.filter(u => !u.prioritized);
+
+      if (prioritizedGolden.length > 0) {
+        const firstGolden = prioritizedGolden[0];
         // Recalculate affordability with Lucky bank protection
-        const isAffordable = canAffordWithLuckyBank(Game.cookies, firstGolden.price, luckyBank);
+        const isAffordable = canAffordWithLuckyBank(Game.cookies, firstGolden.price, luckyBankScaled);
         html += `<div class="cc-opt-item cc-opt-golden-section">`;
         html += `<div class="cc-opt-label cc-opt-golden-label">Golden Priority</div>`;
         html += `<div class="cc-opt-name cc-opt-golden-name">${firstGolden.name}</div>`;
@@ -626,10 +825,21 @@
         if (isAffordable) {
           html += ` <span class="cc-opt-affordable">[BUY]</span>`;
         } else {
-          // Show how much more needed (price + luckyBank - current cookies)
-          const needed = (firstGolden.price + luckyBank) - Game.cookies;
+          // Show how much more needed (price + luckyBankScaled - current cookies)
+          const needed = (firstGolden.price + luckyBankScaled) - Game.cookies;
           html += ` <span class="cc-opt-saving">(need ${formatNumber(needed)})</span>`;
         }
+        html += `</div></div>`;
+      }
+
+      // Show deferred golden upgrades (dimmed)
+      if (deferredGolden.length > 0) {
+        const firstDeferred = deferredGolden[0];
+        html += `<div class="cc-opt-item cc-opt-golden-section cc-opt-golden-deferred">`;
+        html += `<div class="cc-opt-label cc-opt-golden-label">Golden (Deferred)</div>`;
+        html += `<div class="cc-opt-name cc-opt-golden-name">${firstDeferred.name}</div>`;
+        html += `<div class="cc-opt-stats">`;
+        html += `${formatNumber(firstDeferred.price)} <span class="cc-opt-saving">(${firstDeferred.deferReason})</span>`;
         html += `</div></div>`;
       }
 
@@ -696,10 +906,12 @@
 
     /**
      * Find available Golden Cookie upgrades in the store (browser wrapper)
+     * @param {Object|null} luckyBankInfo - Lucky bank info with phaseProgress, or null
      */
-    function findGoldenCookieUpgrades() {
+    function findGoldenCookieUpgrades(luckyBankInfo) {
       if (!state.autoGolden || typeof Game === 'undefined') return [];
-      return findGoldenUpgradesInStore(Game.UpgradesInStore, Game.cookies);
+      const phaseProgress = luckyBankInfo ? luckyBankInfo.phaseProgress : 0;
+      return findGoldenUpgradesInStore(Game.UpgradesInStore, Game.cookies, Game.cookiesPs, phaseProgress);
     }
 
     /**
@@ -729,18 +941,20 @@
       state.lastBuildingCount = getBrowserTotalBuildings();
       state.lastUpgradeCount = getOwnedUpgrades();
 
-      // Find Golden Cookie upgrades when Gold: ON
-      const goldenUpgrades = findGoldenCookieUpgrades();
-
       // Calculate Lucky bank threshold when Gold: ON
-      let luckyBank = 0;
+      let luckyBankInfo = null;
+      let luckyBankScaled = 0;
       if (state.autoGolden) {
-        luckyBank = getLuckyBank(CookieMonsterData.Cache, Game.cookiesPs);
-        updateLuckyBankDisplay(luckyBank, Game.cookies);
+        luckyBankInfo = getLuckyBank(CookieMonsterData.Cache, Game.cookiesPs);
+        luckyBankScaled = luckyBankInfo.scaled;
+        updateLuckyBankDisplay(luckyBankInfo, Game.cookies);
       } else {
         // Hide Lucky bank display when Gold: OFF
         updateLuckyBankDisplay(0, 0);
       }
+
+      // Find Golden Cookie upgrades when Gold: ON (with phase-aware priority)
+      const goldenUpgrades = findGoldenCookieUpgrades(luckyBankInfo);
 
       const candidates = [];
 
@@ -765,7 +979,7 @@
             const price = gameBuilding.getSumPrice(amount);
             // When Gold: ON, only mark affordable if it keeps us above Lucky bank threshold
             const isAffordable = state.autoGolden
-              ? canAffordWithLuckyBank(Game.cookies, price, luckyBank)
+              ? canAffordWithLuckyBank(Game.cookies, price, luckyBankScaled)
               : Game.cookies >= price;
             candidates.push({
               name: name + (amount > 1 ? ' x' + amount : ''),
@@ -788,7 +1002,7 @@
           const price = gameUpgrade.getPrice();
           // When Gold: ON, only mark affordable if it keeps us above Lucky bank threshold
           const isAffordable = state.autoGolden
-            ? canAffordWithLuckyBank(Game.cookies, price, luckyBank)
+            ? canAffordWithLuckyBank(Game.cookies, price, luckyBankScaled)
             : Game.cookies >= price;
           candidates.push({
             name: name,
@@ -812,21 +1026,21 @@
       const bestAffordable = validCandidates.find(c => c.affordable);
 
       // Update the on-screen display
-      updateDisplay(best, bestAffordable, goldenUpgrades, luckyBank);
+      updateDisplay(best, bestAffordable, goldenUpgrades, luckyBankScaled);
 
       // Auto-purchase logic
       if (state.autoPurchase) {
-        // When Gold: ON, prioritize affordable Golden Cookie upgrades (respecting Lucky bank)
-        const affordableGolden = goldenUpgrades.find(u =>
-          canAffordWithLuckyBank(Game.cookies, u.price, luckyBank)
+        // When Gold: ON, prioritize affordable AND prioritized Golden Cookie upgrades
+        const affordablePrioritizedGolden = goldenUpgrades.find(u =>
+          u.prioritized && canAffordWithLuckyBank(Game.cookies, u.price, luckyBankScaled)
         );
-        if (state.autoGolden && affordableGolden) {
+        if (state.autoGolden && affordablePrioritizedGolden) {
           const cookiesBefore = Game.cookies;
-          affordableGolden.gameUpgrade.buy();
+          affordablePrioritizedGolden.gameUpgrade.buy();
           logAction('PURCHASE', {
-            item: affordableGolden.name,
+            item: affordablePrioritizedGolden.name,
             type: 'GoldenUpgrade',
-            price: affordableGolden.price,
+            price: affordablePrioritizedGolden.price,
             cookies_before: cookiesBefore
           });
         } else if (best && best.affordable) {

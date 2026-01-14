@@ -3,28 +3,89 @@
  */
 
 const optimizer = require('../optimizer');
-const { getLuckyBank, canAffordWithLuckyBank } = optimizer;
+const { getBaseLuckyBank, getLuckyBank, canAffordWithLuckyBank, getScaledLuckyBank } = optimizer;
 
-describe('getLuckyBank', () => {
+describe('getBaseLuckyBank', () => {
   it('should use Cookie Monster Lucky cache value when available', () => {
     const cmCache = { Lucky: 1000000 };
-    expect(getLuckyBank(cmCache, 1000)).toBe(1000000);
+    expect(getBaseLuckyBank(cmCache, 1000)).toBe(1000000);
   });
 
   it('should fallback to 6000x CpS when cache not available', () => {
-    expect(getLuckyBank(null, 1000)).toBe(6000000);
-    expect(getLuckyBank(undefined, 1000)).toBe(6000000);
-    expect(getLuckyBank({}, 1000)).toBe(6000000);
+    expect(getBaseLuckyBank(null, 1000)).toBe(6000000);
+    expect(getBaseLuckyBank(undefined, 1000)).toBe(6000000);
+    expect(getBaseLuckyBank({}, 1000)).toBe(6000000);
   });
 
   it('should fallback when cache values are invalid', () => {
-    expect(getLuckyBank({ Lucky: 0 }, 1000)).toBe(6000000);
-    expect(getLuckyBank({ Lucky: -100 }, 1000)).toBe(6000000);
-    expect(getLuckyBank({ Lucky: NaN }, 1000)).toBe(6000000);
+    expect(getBaseLuckyBank({ Lucky: 0 }, 1000)).toBe(6000000);
+    expect(getBaseLuckyBank({ Lucky: -100 }, 1000)).toBe(6000000);
+    expect(getBaseLuckyBank({ Lucky: NaN }, 1000)).toBe(6000000);
   });
 
   it('should handle zero CpS fallback', () => {
-    expect(getLuckyBank(null, 0)).toBe(0);
+    expect(getBaseLuckyBank(null, 0)).toBe(0);
+  });
+});
+
+describe('getLuckyBank (with phase scaling)', () => {
+  it('should return object with scaled, base, phaseProgress, and phaseName', () => {
+    const result = getLuckyBank(null, 1000000); // 1M CpS = mid phase
+    expect(result).toHaveProperty('scaled');
+    expect(result).toHaveProperty('base');
+    expect(result).toHaveProperty('phaseProgress');
+    expect(result).toHaveProperty('phaseName');
+  });
+
+  it('should return 0 scaled bank in early game (< 100K CpS)', () => {
+    const result = getLuckyBank(null, 1000); // 1K CpS = early phase
+    expect(result.base).toBe(6000000); // 6000 * 1000
+    expect(result.scaled).toBe(0); // Early game = no bank protection
+    expect(result.phaseName).toBe('Early');
+  });
+
+  it('should return partial scaled bank in mid game', () => {
+    const result = getLuckyBank(null, 1000000); // 1M CpS = mid phase
+    expect(result.base).toBe(6000000000); // 6000 * 1M
+    expect(result.scaled).toBeGreaterThan(0);
+    expect(result.scaled).toBeLessThan(result.base);
+    expect(result.phaseName).toBe('Mid');
+  });
+
+  it('should return full scaled bank in late game (> 10M CpS)', () => {
+    const result = getLuckyBank(null, 100000000); // 100M CpS = late phase
+    expect(result.base).toBe(600000000000); // 6000 * 100M
+    expect(result.scaled).toBe(result.base); // Late game = full protection
+    expect(result.phaseName).toBe('Late');
+  });
+
+  it('should use Cookie Monster cache value as base when available', () => {
+    const cmCache = { Lucky: 42000000 }; // 42M
+    const result = getLuckyBank(cmCache, 1000000);
+    expect(result.base).toBe(42000000);
+  });
+});
+
+describe('getScaledLuckyBank', () => {
+  it('should return 0 for very early phase progress', () => {
+    expect(getScaledLuckyBank(1000000, 0.1)).toBe(0);
+    expect(getScaledLuckyBank(1000000, 0.2)).toBe(0);
+  });
+
+  it('should return partial value for mid phase progress', () => {
+    const result = getScaledLuckyBank(1000000, 0.5);
+    expect(result).toBeGreaterThan(0);
+    expect(result).toBeLessThan(1000000);
+  });
+
+  it('should return full value for late phase progress', () => {
+    expect(getScaledLuckyBank(1000000, 0.8)).toBe(1000000);
+    expect(getScaledLuckyBank(1000000, 1.0)).toBe(1000000);
+  });
+
+  it('should return 0 when base is 0', () => {
+    expect(getScaledLuckyBank(0, 0.5)).toBe(0);
+    expect(getScaledLuckyBank(0, 1.0)).toBe(0);
   });
 });
 

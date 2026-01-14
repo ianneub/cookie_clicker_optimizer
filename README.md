@@ -102,16 +102,26 @@ Click the **Gold: OFF** button to enable golden cookie features. When enabled:
 - Both toggles are disabled by default
 - Test with `new Game.shimmer('golden')` in the browser console to spawn a golden cookie
 
-### Lucky Bank Protection
+### Lucky Bank Protection (Phase-Aware)
 
-When **Gold: ON**, the optimizer protects a "Lucky bank" of cookies to maximize rewards from Lucky + Frenzy golden cookie combos:
+When **Gold: ON**, the optimizer protects a "Lucky bank" of cookies to maximize rewards from Lucky + Frenzy golden cookie combos. The protection scales based on your game phase:
 
-- **Lucky Bank threshold**: Displayed below the header (42,000 × base CpS)
-- **Protected purchases**: Items are only marked affordable if buying them keeps your cookies above the threshold
-- **Visual indicator**: Shows green when above threshold (+surplus), red when below (need X more)
-- **Auto-purchase respects bank**: When Auto: ON, purchases won't drop you below the threshold
+| Game Phase | CpS Range | Bank Protection | Golden Upgrade Priority |
+|------------|-----------|-----------------|------------------------|
+| Early | < 100K | 0% (disabled) | Only if < 30 min to afford |
+| Mid | 100K - 10M | Scales 0% → 100% | Up to 4 hours to afford |
+| Late | > 10M | 100% (full) | Up to 12 hours to afford |
 
-**Why 42,000× CpS?** The Lucky golden cookie effect gives you `min(15% of bank, 900 × CpS)`. During a Frenzy (7× CpS), to get the maximum reward (6,300 × base CpS), you need 42,000 × base CpS banked. This ensures you always get the full benefit from Lucky + Frenzy combos, which are a major source of cookies in mid-to-late game.
+**Early Game Focus**: In early game, Lucky Bank protection is disabled so you can focus on CpS growth. Golden cookie upgrades are only prioritized if they're quickly affordable (< 30 minutes).
+
+**Late Game Optimization**: Once you reach 10M+ CpS, full Lucky Bank protection kicks in and golden cookie upgrades are highly prioritized since golden combos become a major income source.
+
+**Display Features**:
+- **Phase indicator**: Shows current phase (Early, Mid, Late, Endgame) and bank scaling percentage
+- **Visual indicator**: Green when above threshold (+surplus), red when below (need X more)
+- **Deferred upgrades**: Golden upgrades that take too long to save for are shown dimmed with the reason
+
+**Why Lucky Bank?** The Lucky golden cookie effect gives you `min(15% of bank, 900 × CpS)`. During a Frenzy (7× CpS), to get the maximum reward (6,300 × base CpS), you need 42,000 × base CpS banked. Cookie Monster calculates the optimal threshold; the optimizer uses 6,000× CpS as a fallback.
 
 ### Auto-Refresh
 The optimizer automatically updates:
