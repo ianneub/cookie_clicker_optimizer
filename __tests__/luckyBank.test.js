@@ -3,22 +3,12 @@
  */
 
 const optimizer = require('../optimizer');
-const { getLuckyBank, getBaseCpS, canAffordWithLuckyBank } = optimizer;
+const { getLuckyBank, canAffordWithLuckyBank } = optimizer;
 
 describe('getLuckyBank', () => {
-  it('should use Cookie Monster LuckyFrenzy cache value when available', () => {
-    const cmCache = { LuckyFrenzy: 5000000 };
-    expect(getLuckyBank(cmCache, 1000)).toBe(5000000);
-  });
-
-  it('should use Cookie Monster Lucky cache value when LuckyFrenzy not available', () => {
+  it('should use Cookie Monster Lucky cache value when available', () => {
     const cmCache = { Lucky: 1000000 };
     expect(getLuckyBank(cmCache, 1000)).toBe(1000000);
-  });
-
-  it('should prefer LuckyFrenzy over Lucky when both available', () => {
-    const cmCache = { LuckyFrenzy: 5000000, Lucky: 1000000 };
-    expect(getLuckyBank(cmCache, 1000)).toBe(5000000);
   });
 
   it('should fallback to 6000x CpS when cache not available', () => {
@@ -28,68 +18,13 @@ describe('getLuckyBank', () => {
   });
 
   it('should fallback when cache values are invalid', () => {
-    expect(getLuckyBank({ LuckyFrenzy: 0 }, 1000)).toBe(6000000);
-    expect(getLuckyBank({ LuckyFrenzy: -100 }, 1000)).toBe(6000000);
-    expect(getLuckyBank({ LuckyFrenzy: NaN }, 1000)).toBe(6000000);
+    expect(getLuckyBank({ Lucky: 0 }, 1000)).toBe(6000000);
+    expect(getLuckyBank({ Lucky: -100 }, 1000)).toBe(6000000);
+    expect(getLuckyBank({ Lucky: NaN }, 1000)).toBe(6000000);
   });
 
   it('should handle zero CpS fallback', () => {
     expect(getLuckyBank(null, 0)).toBe(0);
-  });
-});
-
-describe('getBaseCpS', () => {
-  it('should return current CpS when no buffs are active', () => {
-    expect(getBaseCpS(1000, {})).toBe(1000);
-    expect(getBaseCpS(5000, {})).toBe(5000);
-  });
-
-  it('should return current CpS when buffs is null or undefined', () => {
-    expect(getBaseCpS(1000, null)).toBe(1000);
-    expect(getBaseCpS(1000, undefined)).toBe(1000);
-  });
-
-  it('should divide out Frenzy multiplier (7x)', () => {
-    const buffs = { 'Frenzy': { multCpS: 7 } };
-    expect(getBaseCpS(7000, buffs)).toBe(1000);
-  });
-
-  it('should use default Frenzy multiplier when multCpS not specified', () => {
-    const buffs = { 'Frenzy': {} };
-    expect(getBaseCpS(7000, buffs)).toBe(1000);
-  });
-
-  it('should divide out Dragon Harvest multiplier (15x)', () => {
-    const buffs = { 'Dragon Harvest': { multCpS: 15 } };
-    expect(getBaseCpS(15000, buffs)).toBe(1000);
-  });
-
-  it('should divide out Elder frenzy multiplier (666x)', () => {
-    const buffs = { 'Elder frenzy': { multCpS: 666 } };
-    expect(getBaseCpS(666000, buffs)).toBe(1000);
-  });
-
-  it('should divide out Clot multiplier (0.5x)', () => {
-    const buffs = { 'Clot': { multCpS: 0.5 } };
-    expect(getBaseCpS(500, buffs)).toBe(1000);
-  });
-
-  it('should handle multiple buffs', () => {
-    // Frenzy (7x) + Dragon Harvest (15x) = 105x total
-    const buffs = {
-      'Frenzy': { multCpS: 7 },
-      'Dragon Harvest': { multCpS: 15 }
-    };
-    expect(getBaseCpS(105000, buffs)).toBe(1000);
-  });
-
-  it('should handle Frenzy + Clot combination', () => {
-    // Frenzy (7x) * Clot (0.5x) = 3.5x total
-    const buffs = {
-      'Frenzy': { multCpS: 7 },
-      'Clot': { multCpS: 0.5 }
-    };
-    expect(getBaseCpS(3500, buffs)).toBe(1000);
   });
 });
 

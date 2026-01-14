@@ -79,53 +79,16 @@
 
   /**
    * Get the Lucky bank threshold from Cookie Monster's cache
-   * CM calculates this properly accounting for upgrades like Get Lucky, Dragon's Fortune, etc.
-   * Falls back to simple calculation if CM cache not available
+   * Uses 6000x CpS - the bank needed for max Lucky reward (without Frenzy)
    * @param {Object} cmCache - CookieMonsterData.Cache object
-   * @param {number} baseCpS - Base CpS as fallback
-   * @returns {number} Lucky bank threshold (for Lucky+Frenzy combo)
+   * @param {number} cps - Current CpS as fallback
+   * @returns {number} Lucky bank threshold
    */
-  function getLuckyBank(cmCache, baseCpS) {
-    // Use Cookie Monster's calculated value if available
-    // CacheLuckyFrenzy is the bank needed for max Lucky reward during Frenzy
-    if (cmCache && typeof cmCache.LuckyFrenzy === 'number' && cmCache.LuckyFrenzy > 0) {
-      return cmCache.LuckyFrenzy;
-    }
-    // CacheLucky is the bank needed for max Lucky reward (no Frenzy)
+  function getLuckyBank(cmCache, cps) {
     if (cmCache && typeof cmCache.Lucky === 'number' && cmCache.Lucky > 0) {
       return cmCache.Lucky;
     }
-    // Fallback: 6000 * CpS (for Lucky without Frenzy, more conservative)
-    return 6000 * baseCpS;
-  }
-
-  /**
-   * Get the base (unbuffed) CpS from current CpS by dividing out active buffs
-   * @param {number} currentCpS - Current cookies per second
-   * @param {Object} buffs - Game.buffs object containing active buffs
-   * @returns {number} Base CpS without buff multipliers
-   */
-  function getBaseCpS(currentCpS, buffs) {
-    if (!buffs) return currentCpS;
-
-    let divisor = 1;
-
-    // Divide out CpS multiplier buffs
-    if (buffs['Frenzy']) {
-      divisor *= buffs['Frenzy'].multCpS || 7;
-    }
-    if (buffs['Dragon Harvest']) {
-      divisor *= buffs['Dragon Harvest'].multCpS || 15;
-    }
-    if (buffs['Elder frenzy']) {
-      divisor *= buffs['Elder frenzy'].multCpS || 666;
-    }
-    // Clot reduces CpS (multiplier < 1)
-    if (buffs['Clot']) {
-      divisor *= buffs['Clot'].multCpS || 0.5;
-    }
-
-    return currentCpS / divisor;
+    return 6000 * cps;
   }
 
   /**
@@ -275,7 +238,6 @@
     filterAndSortCandidates,
     isGoldenCookieUpgrade,
     getLuckyBank,
-    getBaseCpS,
     canAffordWithLuckyBank,
 
     // Functions with dependencies
@@ -767,9 +729,7 @@
       // Calculate Lucky bank threshold when Gold: ON
       let luckyBank = 0;
       if (state.autoGolden) {
-        const baseCpS = getBaseCpS(Game.cookiesPs, Game.buffs);
-        const cmCache = CookieMonsterData.Cache;
-        luckyBank = getLuckyBank(cmCache, baseCpS);
+        luckyBank = getLuckyBank(CookieMonsterData.Cache, Game.cookiesPs);
         updateLuckyBankDisplay(luckyBank, Game.cookies);
       } else {
         // Hide Lucky bank display when Gold: OFF
