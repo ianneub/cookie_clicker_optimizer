@@ -57,6 +57,11 @@
     return num.toFixed(0);
   }
 
+  function logAction(action, data) {
+    const timestamp = new Date().toISOString();
+    console.log('[CCOptimizer]', JSON.stringify({ timestamp, action, ...data }));
+  }
+
   /**
    * Filter out invalid candidates and sort by PP (lower is better)
    * @param {Array} candidates - Array of candidate objects with pp property
@@ -235,6 +240,7 @@
 
     // Pure functions
     formatNumber,
+    logAction,
     filterAndSortCandidates,
     isGoldenCookieUpgrade,
     getLuckyBank,
@@ -815,10 +821,25 @@
           canAffordWithLuckyBank(Game.cookies, u.price, luckyBank)
         );
         if (state.autoGolden && affordableGolden) {
+          const cookiesBefore = Game.cookies;
           affordableGolden.gameUpgrade.buy();
+          logAction('PURCHASE', {
+            item: affordableGolden.name,
+            type: 'GoldenUpgrade',
+            price: affordableGolden.price,
+            cookies_before: cookiesBefore
+          });
         } else if (best && best.affordable) {
           // Otherwise buy the best PP-based item (affordable already respects Lucky bank)
+          const cookiesBefore = Game.cookies;
           executePurchase(best);
+          logAction('PURCHASE', {
+            item: best.name,
+            type: best.type,
+            price: best.price,
+            pp: best.pp,
+            cookies_before: cookiesBefore
+          });
         }
       }
 
@@ -835,7 +856,13 @@
         if (shimmer.type === 'golden') {
           // Click if it's a regular golden cookie, or if it's wrath and autoWrath is enabled
           if (shimmer.wrath === 0 || state.autoWrath) {
+            const shimmerType = shimmer.wrath === 0 ? 'golden' : 'wrath';
+            const cookiesBefore = Game.cookies;
             shimmer.pop();
+            logAction('GOLDEN_CLICK', {
+              shimmer_type: shimmerType,
+              cookies_before: cookiesBefore
+            });
           }
         }
       }
