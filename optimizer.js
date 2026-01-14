@@ -78,13 +78,25 @@
   }
 
   /**
-   * Calculate the Lucky bank threshold needed to maximize Lucky + Frenzy rewards
-   * Bank of 42,000 x CpS ensures you get max reward from Lucky during Frenzy
-   * @param {number} baseCpS - Base cookies per second (unbuffed)
-   * @returns {number} Optimal bank amount
+   * Get the Lucky bank threshold from Cookie Monster's cache
+   * CM calculates this properly accounting for upgrades like Get Lucky, Dragon's Fortune, etc.
+   * Falls back to simple calculation if CM cache not available
+   * @param {Object} cmCache - CookieMonsterData.Cache object
+   * @param {number} baseCpS - Base CpS as fallback
+   * @returns {number} Lucky bank threshold (for Lucky+Frenzy combo)
    */
-  function calculateLuckyBank(baseCpS) {
-    return 42000 * baseCpS;
+  function getLuckyBank(cmCache, baseCpS) {
+    // Use Cookie Monster's calculated value if available
+    // CacheLuckyFrenzy is the bank needed for max Lucky reward during Frenzy
+    if (cmCache && typeof cmCache.LuckyFrenzy === 'number' && cmCache.LuckyFrenzy > 0) {
+      return cmCache.LuckyFrenzy;
+    }
+    // CacheLucky is the bank needed for max Lucky reward (no Frenzy)
+    if (cmCache && typeof cmCache.Lucky === 'number' && cmCache.Lucky > 0) {
+      return cmCache.Lucky;
+    }
+    // Fallback: 6000 * CpS (for Lucky without Frenzy, more conservative)
+    return 6000 * baseCpS;
   }
 
   /**
@@ -262,7 +274,7 @@
     formatNumber,
     filterAndSortCandidates,
     isGoldenCookieUpgrade,
-    calculateLuckyBank,
+    getLuckyBank,
     getBaseCpS,
     canAffordWithLuckyBank,
 
@@ -756,7 +768,8 @@
       let luckyBank = 0;
       if (state.autoGolden) {
         const baseCpS = getBaseCpS(Game.cookiesPs, Game.buffs);
-        luckyBank = calculateLuckyBank(baseCpS);
+        const cmCache = CookieMonsterData.Cache;
+        luckyBank = getLuckyBank(cmCache, baseCpS);
         updateLuckyBankDisplay(luckyBank, Game.cookies);
       } else {
         // Hide Lucky bank display when Gold: OFF

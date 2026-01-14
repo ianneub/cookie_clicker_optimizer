@@ -3,21 +3,38 @@
  */
 
 const optimizer = require('../optimizer');
-const { calculateLuckyBank, getBaseCpS, canAffordWithLuckyBank } = optimizer;
+const { getLuckyBank, getBaseCpS, canAffordWithLuckyBank } = optimizer;
 
-describe('calculateLuckyBank', () => {
-  it('should calculate 42000x CpS for optimal Frenzy + Lucky combo', () => {
-    expect(calculateLuckyBank(1000)).toBe(42000000);
-    expect(calculateLuckyBank(100)).toBe(4200000);
-    expect(calculateLuckyBank(1)).toBe(42000);
+describe('getLuckyBank', () => {
+  it('should use Cookie Monster LuckyFrenzy cache value when available', () => {
+    const cmCache = { LuckyFrenzy: 5000000 };
+    expect(getLuckyBank(cmCache, 1000)).toBe(5000000);
   });
 
-  it('should handle zero CpS', () => {
-    expect(calculateLuckyBank(0)).toBe(0);
+  it('should use Cookie Monster Lucky cache value when LuckyFrenzy not available', () => {
+    const cmCache = { Lucky: 1000000 };
+    expect(getLuckyBank(cmCache, 1000)).toBe(1000000);
   });
 
-  it('should handle very large CpS values', () => {
-    expect(calculateLuckyBank(1e12)).toBe(42000 * 1e12);
+  it('should prefer LuckyFrenzy over Lucky when both available', () => {
+    const cmCache = { LuckyFrenzy: 5000000, Lucky: 1000000 };
+    expect(getLuckyBank(cmCache, 1000)).toBe(5000000);
+  });
+
+  it('should fallback to 6000x CpS when cache not available', () => {
+    expect(getLuckyBank(null, 1000)).toBe(6000000);
+    expect(getLuckyBank(undefined, 1000)).toBe(6000000);
+    expect(getLuckyBank({}, 1000)).toBe(6000000);
+  });
+
+  it('should fallback when cache values are invalid', () => {
+    expect(getLuckyBank({ LuckyFrenzy: 0 }, 1000)).toBe(6000000);
+    expect(getLuckyBank({ LuckyFrenzy: -100 }, 1000)).toBe(6000000);
+    expect(getLuckyBank({ LuckyFrenzy: NaN }, 1000)).toBe(6000000);
+  });
+
+  it('should handle zero CpS fallback', () => {
+    expect(getLuckyBank(null, 0)).toBe(0);
   });
 });
 
