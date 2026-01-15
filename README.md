@@ -74,6 +74,7 @@ The first time you run it, Cookie Monster will be automatically loaded if not al
 - **Auto: OFF/ON** - Toggle automatic purchasing of the best item when affordable
 - **Gold: OFF/ON** - Toggle automatic clicking of golden cookies
 - **Wrath: OFF/ON** - Toggle automatic clicking of wrath cookies (only visible when Gold is ON)
+- **Wrnk: OFF/ON** - Toggle automatic wrinkler popping (only visible during Grandmapocalypse)
 - **Click bookmarklet again** - Toggle off (stops and removes panel)
 - **Drag the header** - Move the panel anywhere on screen
 - **Click X** - Close the panel
@@ -122,6 +123,24 @@ When **Gold: ON**, the optimizer protects a "Lucky bank" of cookies to maximize 
 - **Deferred upgrades**: Golden upgrades that take too long to save for are shown dimmed with the reason
 
 **Why Lucky Bank?** The Lucky golden cookie effect gives you `min(15% of bank, 900 × CpS)`. During a Frenzy (7× CpS), to get the maximum reward (6,300 × base CpS), you need 42,000 × base CpS banked. Cookie Monster calculates the optimal threshold; the optimizer uses 6,000× CpS as a fallback.
+
+### Wrinkler Management
+
+During the Grandmapocalypse, wrinklers appear and consume your cookies. When popped, they return 1.1× the cookies they consumed (plus bonuses from upgrades). The optimizer helps manage wrinklers:
+
+**Display Features**:
+- **Wrinkler count**: Shows current/max wrinklers (e.g., "8/10")
+- **Shiny indicator**: Highlights if any shiny wrinklers are present (3.3× reward)
+- **Pop reward**: Total cookies you'd get from popping all normal wrinklers
+- **Action suggestion**: Shows when popping would help buy the best item faster
+
+**Auto-Pop Mode (Wrnk: ON)**:
+- When enabled with Auto: ON, wrinklers are automatically popped when doing so enables buying the best PP item faster than waiting
+- **Shiny wrinklers are never auto-popped** (preserved for the 3.3× reward and achievement)
+- Factors in wrinkler respawn time (~110 seconds) to avoid wasteful popping
+- Disabled by default - you must explicitly enable it
+
+**Why Wrinklers?** With 10 wrinklers, you effectively get a 6× CpS multiplier (stored until popped). The optimizer calculates whether popping now to buy an upgrade is better than waiting for passive income.
 
 ### Auto-Refresh
 The optimizer automatically updates:

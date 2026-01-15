@@ -41,6 +41,13 @@
     'Green yeast digestives'  // Multi-effect
   ]);
 
+  // Toggle/repeatable upgrades - excluded from optimization (not production upgrades)
+  const TOGGLE_UPGRADES = new Set([
+    'Elder Pledge',           // Pauses Grandmapocalypse 30-60 min, repeatable
+    'Elder Covenant',         // Permanent -5% CpS, stops Grandmapocalypse
+    'Revoke Elder Covenant'   // Undoes Elder Covenant
+  ]);
+
   // ===== PURE FUNCTIONS (easily testable, no external dependencies) =====
 
   /**
@@ -80,6 +87,15 @@
    */
   function isGoldenCookieUpgrade(upgradeName) {
     return GOLDEN_COOKIE_UPGRADES.has(upgradeName);
+  }
+
+  /**
+   * Check if an upgrade is a toggle/repeatable upgrade (excluded from optimization)
+   * @param {string} upgradeName - Name of the upgrade
+   * @returns {boolean} True if it's a toggle upgrade
+   */
+  function isToggleUpgrade(upgradeName) {
+    return TOGGLE_UPGRADES.has(upgradeName);
   }
 
   /**
@@ -259,6 +275,83 @@
     };
   }
 
+  // ===== WRINKLER FUNCTIONS =====
+
+  // Average time for a wrinkler to respawn (seconds)
+  // Based on spawn probability mechanics during Elder Pact
+  const WRINKLER_RESPAWN_TIME = 110;
+
+  /**
+   * Get the wrinkler pop multiplier based on upgrades owned
+   * Base: 1.1x (10% gain), +5% from Wrinklerspawn, +5% from Sacrilegious Corruption
+   * @param {boolean} hasWrinklerspawn - Whether Wrinklerspawn upgrade is owned
+   * @param {boolean} hasSacrilegious - Whether Sacrilegious Corruption upgrade is owned
+   * @returns {number} Multiplier for popped cookies (1.1 to 1.2155)
+   */
+  function getWrinklerMultiplier(hasWrinklerspawn, hasSacrilegious) {
+    let multiplier = 1.1;
+    if (hasWrinklerspawn) multiplier *= 1.05;
+    if (hasSacrilegious) multiplier *= 1.05;
+    return multiplier;
+  }
+
+  /**
+   * Calculate total pop reward for non-shiny wrinklers
+   * @param {Array} wrinklers - Array of wrinkler objects with {sucked, type, phase}
+   * @param {number} multiplier - Pop multiplier from getWrinklerMultiplier
+   * @returns {number} Total cookies gained from popping all normal wrinklers
+   */
+  function calculateNormalWrinklerReward(wrinklers, multiplier) {
+    let total = 0;
+    for (const w of wrinklers) {
+      // Only count active wrinklers (phase 2) that are not shiny (type 0)
+      if (w.phase === 2 && w.type === 0 && w.sucked > 0) {
+        total += w.sucked * multiplier;
+      }
+    }
+    return total;
+  }
+
+  /**
+   * Check if popping wrinklers enables a purchase faster than waiting
+   * Factors in the opportunity cost of wrinklers being gone during respawn
+   * @param {number} popReward - Cookies gained from popping
+   * @param {number} itemPrice - Price of the item to buy
+   * @param {number} currentCookies - Current cookie count
+   * @param {number} cps - Current cookies per second
+   * @param {number} wrinklerCount - Number of wrinklers being popped
+   * @returns {Object} { shouldPop: boolean, reason: string }
+   */
+  function shouldPopForPurchase(popReward, itemPrice, currentCookies, cps, wrinklerCount) {
+    // If we can already afford it, no need to pop
+    if (currentCookies >= itemPrice) {
+      return { shouldPop: false, reason: 'Already affordable' };
+    }
+
+    // If popping doesn't help us afford it, don't pop
+    if (currentCookies + popReward < itemPrice) {
+      return { shouldPop: false, reason: 'Pop reward insufficient' };
+    }
+
+    // Calculate time to afford without popping
+    const needed = itemPrice - currentCookies;
+    const timeWithoutPop = needed / cps;
+
+    // Calculate opportunity cost: wrinklers won't be earning during respawn
+    // With N wrinklers, effective CpS multiplier is roughly 1 + 0.05*N*N*1.1
+    // But for simplicity, we estimate lost production during respawn
+    const respawnTime = WRINKLER_RESPAWN_TIME * wrinklerCount;
+    const lostProduction = cps * 0.5 * respawnTime; // Rough estimate of lost wrinkler gains
+
+    // If we can afford immediately after pop and save significant time, do it
+    // Only pop if we save more than the respawn time
+    if (timeWithoutPop > respawnTime) {
+      return { shouldPop: true, reason: `Saves ${Math.floor(timeWithoutPop - respawnTime)}s` };
+    }
+
+    return { shouldPop: false, reason: 'Respawn cost too high' };
+  }
+
   // ===== FUNCTIONS WITH SIMPLE DEPENDENCIES (need mocking for tests) =====
 
   /**
@@ -408,6 +501,7 @@
     logAction,
     filterAndSortCandidates,
     isGoldenCookieUpgrade,
+    isToggleUpgrade,
     getBaseLuckyBank,
     getLuckyBank,
     canAffordWithLuckyBank,
@@ -425,7 +519,13 @@
     checkForPurchaseState,
     isCMDataReady,
     findGoldenUpgradesInStore,
-    executePurchaseItem
+    executePurchaseItem,
+
+    // Wrinkler functions
+    WRINKLER_RESPAWN_TIME,
+    getWrinklerMultiplier,
+    calculateNormalWrinklerReward,
+    shouldPopForPurchase
   };
 
   // ===== BROWSER-ONLY INITIALIZATION =====
@@ -445,7 +545,8 @@
       displayElement: null,
       autoPurchase: false,  // Auto-buy best item when affordable (disabled by default)
       autoGolden: false,    // Auto-click golden cookies (disabled by default)
-      autoWrath: false      // Also click wrath cookies when autoGolden is enabled (disabled by default)
+      autoWrath: false,     // Also click wrath cookies when autoGolden is enabled (disabled by default)
+      autoWrinklers: false  // Auto-pop wrinklers when it enables a purchase (disabled by default)
     };
 
     const state = window.CCOptimizer;
@@ -467,12 +568,24 @@
             <span id="cc-opt-auto">Auto: OFF</span>
             <span id="cc-opt-golden">Gold: OFF</span>
             <span id="cc-opt-wrath" style="display: none;">Wrath: OFF</span>
+            <span id="cc-opt-wrinkler" style="display: none;">Wrnk: OFF</span>
             <span id="cc-opt-close">x</span>
           </div>
         </div>
         <div id="cc-opt-lucky-bank" style="display: none;">
           <span class="cc-opt-lucky-label">Lucky Bank: </span>
           <span id="cc-opt-lucky-value">0</span>
+        </div>
+        <div id="cc-opt-wrinklers" style="display: none;">
+          <div class="cc-opt-wrinkler-header">
+            <span class="cc-opt-wrinkler-label">Wrinklers: </span>
+            <span id="cc-opt-wrinkler-count">0/10</span>
+          </div>
+          <div class="cc-opt-wrinkler-reward">
+            <span>Pop Reward: </span>
+            <span id="cc-opt-wrinkler-reward">0</span>
+          </div>
+          <div id="cc-opt-wrinkler-action" style="display: none;"></div>
         </div>
         <div id="cc-opt-content">Loading...</div>
       `;
@@ -556,6 +669,21 @@
           background: #5a2a2a;
           color: #ff6666;
         }
+        #cc-opt-wrinkler {
+          cursor: pointer;
+          font-size: 10px;
+          padding: 2px 6px;
+          border-radius: 3px;
+          background: #333;
+          color: #999;
+        }
+        #cc-opt-wrinkler:hover {
+          background: #444;
+        }
+        #cc-opt-wrinkler.active {
+          background: #3a2a4a;
+          color: #b388ff;
+        }
         #cc-opt-close {
           cursor: pointer;
           color: #ff6666;
@@ -636,6 +764,38 @@
         #cc-opt-lucky-value.below-threshold {
           color: #ff6666;
         }
+        #cc-opt-wrinklers {
+          background: linear-gradient(to right, rgba(128, 0, 128, 0.15), transparent);
+          padding: 4px 10px;
+          border-bottom: 1px solid #333;
+          font-size: 11px;
+        }
+        .cc-opt-wrinkler-header {
+          display: flex;
+          justify-content: space-between;
+        }
+        .cc-opt-wrinkler-label {
+          color: #b388ff;
+        }
+        #cc-opt-wrinkler-count {
+          color: #b388ff;
+        }
+        .cc-opt-wrinkler-reward {
+          color: #ccc;
+          font-size: 10px;
+        }
+        #cc-opt-wrinkler-reward {
+          color: #90EE90;
+        }
+        #cc-opt-wrinkler-action {
+          color: #b388ff;
+          font-size: 10px;
+          font-style: italic;
+          margin-top: 2px;
+        }
+        .cc-opt-shiny {
+          color: #ffeb3b;
+        }
       `;
       document.head.appendChild(style);
       document.body.appendChild(state.displayElement);
@@ -670,6 +830,15 @@
         e.stopPropagation();
         state.autoWrath = !state.autoWrath;
         updateWrathButton(wrathBtn);
+      };
+
+      // Wrinkler toggle button
+      const wrinklerBtn = document.getElementById('cc-opt-wrinkler');
+      updateWrinklerButton(wrinklerBtn);
+      wrinklerBtn.onclick = (e) => {
+        e.stopPropagation();
+        state.autoWrinklers = !state.autoWrinklers;
+        updateWrinklerButton(wrinklerBtn);
       };
 
       // Make draggable
@@ -724,6 +893,21 @@
         btn.classList.add('active');
       } else {
         btn.textContent = 'Wrath: OFF';
+        btn.classList.remove('active');
+      }
+    }
+
+    /**
+     * Update the wrinkler button display
+     */
+    function updateWrinklerButton(btn) {
+      if (!btn) btn = document.getElementById('cc-opt-wrinkler');
+      if (!btn) return;
+      if (state.autoWrinklers) {
+        btn.textContent = 'Wrnk: ON';
+        btn.classList.add('active');
+      } else {
+        btn.textContent = 'Wrnk: OFF';
         btn.classList.remove('active');
       }
     }
@@ -916,6 +1100,118 @@
     }
 
     /**
+     * Get current wrinkler statistics from Game
+     * @returns {Object|null} Wrinkler stats or null if not in Grandmapocalypse
+     */
+    function getWrinklerStats() {
+      if (typeof Game === 'undefined' || !Game.wrinklers) return null;
+
+      // Check if Grandmapocalypse is active (elderWrath > 0)
+      if (Game.elderWrath === 0) return null;
+
+      const wrinklers = Game.wrinklers;
+      let normalCount = 0;
+      let shinyCount = 0;
+      let totalSucked = 0;
+
+      for (const w of wrinklers) {
+        if (w.phase === 2) { // Active wrinkler
+          if (w.type === 1) {
+            shinyCount++;
+          } else {
+            normalCount++;
+          }
+          totalSucked += w.sucked;
+        }
+      }
+
+      // Get wrinkler upgrades
+      const hasWrinklerspawn = Game.Has('Wrinklerspawn');
+      const hasSacrilegious = Game.Has('Sacrilegious corruption');
+      const multiplier = getWrinklerMultiplier(hasWrinklerspawn, hasSacrilegious);
+
+      // Calculate pop reward for normal wrinklers only
+      const popReward = calculateNormalWrinklerReward(wrinklers, multiplier);
+
+      // Get max wrinklers (10 base + Elder Spice + Dragon Guts)
+      const max = Game.getWrinklersMax ? Game.getWrinklersMax() : 10;
+
+      return {
+        count: normalCount + shinyCount,
+        max,
+        normalCount,
+        shinyCount,
+        totalSucked,
+        popReward,
+        multiplier
+      };
+    }
+
+    /**
+     * Pop all normal wrinklers (preserves shiny)
+     * @returns {number} Number of wrinklers popped
+     */
+    function popNormalWrinklers() {
+      if (typeof Game === 'undefined' || !Game.wrinklers) return 0;
+
+      let popped = 0;
+      for (const w of Game.wrinklers) {
+        // Only pop active normal wrinklers (phase 2, type 0)
+        if (w.phase === 2 && w.type === 0) {
+          w.hp = 0; // Setting hp to 0 pops the wrinkler
+          popped++;
+        }
+      }
+      return popped;
+    }
+
+    /**
+     * Update the wrinkler display section
+     * @param {Object|null} stats - Wrinkler stats from getWrinklerStats
+     * @param {string|null} actionText - Optional action recommendation text
+     */
+    function updateWrinklerDisplay(stats, actionText = null) {
+      const sectionEl = document.getElementById('cc-opt-wrinklers');
+      const countEl = document.getElementById('cc-opt-wrinkler-count');
+      const rewardEl = document.getElementById('cc-opt-wrinkler-reward');
+      const actionEl = document.getElementById('cc-opt-wrinkler-action');
+      const wrinklerBtn = document.getElementById('cc-opt-wrinkler');
+
+      if (!sectionEl) return;
+
+      // Hide section and button if no wrinklers active
+      if (!stats || stats.count === 0) {
+        sectionEl.style.display = 'none';
+        if (wrinklerBtn) wrinklerBtn.style.display = 'none';
+        return;
+      }
+
+      // Show section and button
+      sectionEl.style.display = 'block';
+      if (wrinklerBtn) wrinklerBtn.style.display = 'inline';
+
+      // Update count (with shiny indicator)
+      let countText = `${stats.count}/${stats.max}`;
+      if (stats.shinyCount > 0) {
+        countText += ` <span class="cc-opt-shiny">(${stats.shinyCount} shiny)</span>`;
+      }
+      if (countEl) countEl.innerHTML = countText;
+
+      // Update reward
+      if (rewardEl) rewardEl.textContent = formatNumber(stats.popReward);
+
+      // Update action text
+      if (actionEl) {
+        if (actionText) {
+          actionEl.style.display = 'block';
+          actionEl.textContent = actionText;
+        } else {
+          actionEl.style.display = 'none';
+        }
+      }
+    }
+
+    /**
      * Find available Golden Cookie upgrades in the store (browser wrapper)
      * @param {Object|null} luckyBankInfo - Lucky bank info with phaseProgress, or null
      */
@@ -969,6 +1265,10 @@
       // Find Golden Cookie upgrades when Gold: ON (with phase-aware priority)
       const goldenUpgrades = findGoldenCookieUpgrades(luckyBankInfo);
 
+      // Get wrinkler stats and update display
+      const wrinklerStats = getWrinklerStats();
+      let wrinklerActionText = null;
+
       const candidates = [];
 
       // Collect building PP values (Objects1 = buy 1, Objects10 = buy 10, Objects100 = buy 100)
@@ -1011,7 +1311,8 @@
         const gameUpgrade = Game.Upgrades[name];
 
         // Only consider upgrades that are in the store (available for purchase)
-        if (gameUpgrade && Game.UpgradesInStore.includes(gameUpgrade) && upgrade.pp !== undefined) {
+        // Exclude toggle upgrades (Elder Pledge, etc.) - not production upgrades
+        if (gameUpgrade && Game.UpgradesInStore.includes(gameUpgrade) && upgrade.pp !== undefined && !isToggleUpgrade(name)) {
           const price = gameUpgrade.getPrice();
           // When Gold: ON, only mark affordable if it keeps us above Lucky bank threshold
           const isAffordable = state.autoGolden
@@ -1037,6 +1338,23 @@
 
       const best = validCandidates[0];
       const bestAffordable = validCandidates.find(c => c.affordable);
+
+      // Check if popping wrinklers would help buy the best item
+      if (wrinklerStats && wrinklerStats.normalCount > 0 && best && !best.affordable) {
+        const popResult = shouldPopForPurchase(
+          wrinklerStats.popReward,
+          best.price,
+          Game.cookies,
+          getUnbuffedCps(),
+          wrinklerStats.normalCount
+        );
+        if (popResult.shouldPop) {
+          wrinklerActionText = `Pop for ${best.name}? (${popResult.reason})`;
+        }
+      }
+
+      // Update wrinkler display
+      updateWrinklerDisplay(wrinklerStats, wrinklerActionText);
 
       // Update the on-screen display
       updateDisplay(best, bestAffordable, goldenUpgrades, luckyBankScaled);
@@ -1073,10 +1391,30 @@
             pp: best.pp,
             cookies_before: cookiesBefore
           });
+        } else if (state.autoWrinklers && wrinklerStats && wrinklerStats.normalCount > 0 && best && !best.affordable) {
+          // Auto-pop wrinklers if it enables buying the best item
+          const popResult = shouldPopForPurchase(
+            wrinklerStats.popReward,
+            best.price,
+            Game.cookies,
+            getUnbuffedCps(),
+            wrinklerStats.normalCount
+          );
+          if (popResult.shouldPop) {
+            const cookiesBefore = Game.cookies;
+            const popped = popNormalWrinklers();
+            logAction('WRINKLER_POP', {
+              count: popped,
+              reward: wrinklerStats.popReward,
+              target_item: best.name,
+              reason: popResult.reason,
+              cookies_before: cookiesBefore
+            });
+          }
         }
       }
 
-      return { best, bestAffordable, goldenUpgrades };
+      return { best, bestAffordable, goldenUpgrades, wrinklerStats };
     }
 
     /**
