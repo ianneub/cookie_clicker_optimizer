@@ -1,15 +1,57 @@
 # Cookie Clicker Optimizer
 
-[![Tests](https://github.com/ianneub/cookie_clicker_optimizer/actions/workflows/deploy.yml/badge.svg)](https://github.com/ianneub/cookie_clicker_optimizer/actions/workflows/deploy.yml)
+<div align="center">
 
-A bookmarklet that displays the most efficient purchase in Cookie Clicker using a floating on-screen panel. Leverages [Cookie Monster](https://github.com/CookieMonsterTeam/CookieMonster)'s payback period calculations.
+[![Tests](https://github.com/ianneub/cookie_clicker_optimizer/actions/workflows/deploy.yml/badge.svg)](https://github.com/ianneub/cookie_clicker_optimizer/actions/workflows/deploy.yml)
+[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
+
+**Stop guessing. Start optimizing.**
+
+A bookmarklet that displays the most efficient purchase in Cookie Clicker using [Cookie Monster](https://github.com/CookieMonsterTeam/CookieMonster)'s payback period calculations.
+
+<h3>Quick Install</h3>
+
+**[Get the Bookmarklet](https://ianneub.github.io/cookie_clicker_optimizer/)**
+
+</div>
+
+---
+
+## TL;DR
+
+**The Problem**: Cookie Clicker has dozens of buildings and upgrades. Manually calculating which purchase gives the best return is tedious and error-prone.
+
+**The Solution**: This bookmarklet analyzes all available purchases and tells you exactly what to buy next, with optional auto-purchasing.
+
+### Why Use This?
+
+| Feature | What It Does |
+|---------|--------------|
+| **Best Purchase Display** | Shows the optimal item based on Payback Period (lower = better) |
+| **Auto-Purchase** | Automatically buys the best item when you can afford it |
+| **Golden Cookie Handling** | Auto-clicks golden/wrath cookies, prioritizes golden upgrades |
+| **Lucky Bank Protection** | Reserves cookies for max Lucky rewards (phase-aware scaling) |
+| **Wrinkler Management** | Tracks wrinkler rewards, suggests when to pop for faster progress |
+
+---
+
+## Quick Start
+
+1. Open [Cookie Clicker](https://orteil.dashnet.org/cookieclicker/)
+2. Click your bookmarklet
+3. A floating panel appears showing your best purchase
+
+![Optimizer Panel](images/optimizer-panel.png)
+
+---
 
 ## How It Works
 
-The optimizer uses Cookie Monster's **Payback Period (PP)** metric to rank all available purchases. PP accounts for:
-- Time to afford the item (if you don't have enough cookies yet)
-- Time for the purchase to pay for itself through increased CPS
-- Achievement synergies and other bonuses
+The optimizer uses Cookie Monster's **Payback Period (PP)** metric to rank purchases:
+
+- **Time to afford** the item (if you don't have enough cookies)
+- **Time to pay for itself** through increased CpS
+- **Synergies** from achievements and bonuses
 
 **Lower PP = Better purchase**
 
@@ -39,6 +81,8 @@ flowchart TD
     P --> F
 ```
 
+---
+
 ## Installation
 
 ### Quick Install (Recommended)
@@ -48,142 +92,146 @@ Visit the **[Installation Page](https://ianneub.github.io/cookie_clicker_optimiz
 ### Manual Installation
 
 1. Copy the entire contents of `bookmarklet.txt`
-2. In your browser, create a new bookmark
-3. Name it something like "CC Optimizer"
+2. Create a new bookmark in your browser
+3. Name it "CC Optimizer"
 4. Paste the copied text as the bookmark URL
-5. Save the bookmark
 
 ### Browser Console
 
-1. Open Cookie Clicker in your browser
-2. Open Developer Tools (F12 or Ctrl+Shift+I)
-3. Go to the Console tab
-4. Copy and paste the contents of `optimizer.js`
-5. Press Enter
+```javascript
+// Copy contents of optimizer.js and paste into DevTools Console (F12)
+```
 
-## Usage
+---
 
-1. Open [Cookie Clicker](https://orteil.dashnet.org/cookieclicker/)
-2. Click your bookmarklet to start the optimizer
-3. A floating panel appears in the top-left corner
+## Controls
 
-The first time you run it, Cookie Monster will be automatically loaded if not already present (this may take a few seconds).
+| Control | Action |
+|---------|--------|
+| **Auto: OFF/ON** | Toggle automatic purchasing |
+| **Gold: OFF/ON** | Toggle golden cookie auto-clicking |
+| **Wrath: OFF/ON** | Include wrath cookies (visible when Gold ON) |
+| **Wrnk: OFF/ON** | Auto-pop wrinklers when beneficial (visible during Grandmapocalypse) |
+| **Drag header** | Move panel anywhere |
+| **Click X** | Close panel |
+| **Click bookmarklet again** | Toggle off |
+| **`CCOptimizerStop()`** | Stop from console |
 
-### Controls
-
-- **Auto: OFF/ON** - Toggle automatic purchasing of the best item when affordable
-- **Gold: OFF/ON** - Toggle automatic clicking of golden cookies
-- **Wrath: OFF/ON** - Toggle automatic clicking of wrath cookies (only visible when Gold is ON)
-- **Wrnk: OFF/ON** - Toggle automatic wrinkler popping (only visible during Grandmapocalypse)
-- **Click bookmarklet again** - Toggle off (stops and removes panel)
-- **Drag the header** - Move the panel anywhere on screen
-- **Click X** - Close the panel
-- **`CCOptimizerStop()`** - Stop from console
+---
 
 ## Features
 
 ### Auto-Purchase Mode
 
-Click the **Auto: OFF** button in the panel header to enable automatic purchasing. When enabled:
-
-- The optimizer will automatically buy the **best overall** item as soon as you can afford it
-- Purchases happen instantly with no delay
-- Toggle off at any time by clicking the button again (shows **Auto: ON** when active)
-- Disabled by default - you must explicitly enable it
+When enabled, automatically buys the best PP item as soon as affordable. Disabled by default.
 
 ### Golden Cookie Mode
 
-Click the **Gold: OFF** button to enable golden cookie features. When enabled:
+When **Gold: ON**:
+- Auto-clicks golden cookies instantly
+- Shows "Golden Priority" section for spawn-rate upgrades
+- Prioritizes golden upgrades when combined with Auto
+- **Wrath** toggle appears for red cookies
 
-- **Auto-click**: Golden cookies are clicked instantly when they appear (checks every 200ms)
-- **Upgrade prioritization**: A "Golden Priority" section appears showing upgrades that reduce golden cookie spawn time (Lucky day, Serendipity, Get lucky, etc.)
-- **Lucky Bank Protection**: See below for details
-- When combined with **Auto: ON**, golden cookie upgrades are purchased first when affordable
-- A **Wrath: OFF** toggle appears to optionally include wrath cookies (red cookies during Grandmapocalypse)
-- Both toggles are disabled by default
-- Test with `new Game.shimmer('golden')` in the browser console to spawn a golden cookie
+Test with: `new Game.shimmer('golden')` in console
 
-### Lucky Bank Protection (Phase-Aware)
+### Lucky Bank Protection
 
-When **Gold: ON**, the optimizer protects a "Lucky bank" of cookies to maximize rewards from Lucky + Frenzy golden cookie combos. The protection scales based on your game phase:
+Reserves cookies for max Lucky + Frenzy rewards. Scales by game phase:
 
-| Game Phase | CpS Range | Bank Protection | Golden Upgrade Priority |
-|------------|-----------|-----------------|------------------------|
-| Early | < 100K | 0% (disabled) | Only if < 30 min to afford |
-| Mid | 100K - 10M | Scales 0% → 100% | Up to 4 hours to afford |
-| Late | > 10M | 100% (full) | Up to 12 hours to afford |
+| Phase | CpS Range | Bank Protection | Golden Upgrade Priority |
+|-------|-----------|-----------------|------------------------|
+| Early | < 1M | 0% (disabled) | Only if < 30 min |
+| Mid | 1M - 100M | Scales 0% → 100% | Up to 4 hours |
+| Late | > 100M | 100% (full) | Up to 12 hours |
 
-**Early Game Focus**: In early game, Lucky Bank protection is disabled so you can focus on CpS growth. Golden cookie upgrades are only prioritized if they're quickly affordable (< 30 minutes).
-
-**Late Game Optimization**: Once you reach 10M+ CpS, full Lucky Bank protection kicks in and golden cookie upgrades are highly prioritized since golden combos become a major income source.
-
-**Display Features**:
-- **Phase indicator**: Shows current phase (Early, Mid, Late, Endgame) and bank scaling percentage
-- **Visual indicator**: Green when above threshold (+surplus), red when below (need X more)
-- **Deferred upgrades**: Golden upgrades that take too long to save for are shown dimmed with the reason
-
-**Why Lucky Bank?** The Lucky golden cookie effect gives you `min(15% of bank, 900 × CpS)`. During a Frenzy (7× CpS), to get the maximum reward (6,300 × base CpS), you need 42,000 × base CpS banked. Cookie Monster calculates the optimal threshold; the optimizer uses 6,000× CpS as a fallback.
+**Why?** Lucky gives `min(15% of bank, 900 × CpS)`. During Frenzy, you need 42,000 × base CpS banked for max reward.
 
 ### Wrinkler Management
 
-During the Grandmapocalypse, wrinklers appear and consume your cookies. When popped, they return 1.1× the cookies they consumed (plus bonuses from upgrades). The optimizer helps manage wrinklers:
+During Grandmapocalypse:
+- Shows wrinkler count and pop reward
+- Highlights shiny wrinklers (3.3× reward, never auto-popped)
+- Suggests when popping enables faster purchases
 
-**Display Features**:
-- **Wrinkler count**: Shows current/max wrinklers (e.g., "8/10")
-- **Shiny indicator**: Highlights if any shiny wrinklers are present (3.3× reward)
-- **Pop reward**: Total cookies you'd get from popping all normal wrinklers
-- **Action suggestion**: Shows when popping would help buy the best item faster
+---
 
-**Auto-Pop Mode (Wrnk: ON)**:
-- When enabled with Auto: ON, wrinklers are automatically popped when doing so enables buying the best PP item faster than waiting
-- **Shiny wrinklers are never auto-popped** (preserved for the 3.3× reward and achievement)
-- Factors in wrinkler respawn time (~110 seconds) to avoid wasteful popping
-- Disabled by default - you must explicitly enable it
+## Comparison
 
-**Why Wrinklers?** With 10 wrinklers, you effectively get a 6× CpS multiplier (stored until popped). The optimizer calculates whether popping now to buy an upgrade is better than waiting for passive income.
+| Feature | This Optimizer | Cookie Monster Only | Manual Play |
+|---------|---------------|---------------------|-------------|
+| Best purchase recommendation | ✅ Floating panel | ⚠️ Hover tooltips | ❌ Mental math |
+| Auto-purchasing | ✅ One click | ❌ Manual | ❌ Manual |
+| Golden cookie handling | ✅ Auto-click + prioritize | ⚠️ Notifications only | ❌ Watch constantly |
+| Lucky bank management | ✅ Phase-aware auto | ⚠️ Manual tracking | ❌ Guesswork |
+| Wrinkler optimization | ✅ Pop suggestions | ⚠️ Shows reward only | ❌ Guesswork |
+| Setup time | ✅ ~5 seconds | ⚠️ ~30 seconds | N/A |
 
-### Auto-Refresh
-The optimizer automatically updates:
-- Every **2 seconds**
-- **Immediately** after any purchase (building or upgrade)
-
-### On-Screen Display
-A compact floating panel shows:
-- **Golden Priority** - Golden cookie upgrades when Gold: ON (no PP value since benefits are random)
-- **Best Overall** - The most efficient purchase (lowest PP)
-- **Best Affordable** - What you can buy right now (if different)
-- **[BUY]** indicator when you can afford an item
-- Cookies needed if you're saving up
-
-### Example Display
-
-![Optimizer Panel](images/optimizer-panel.png)
-
-## Files
-
-- `optimizer.js` - Full source code with comments
-- `bookmarklet.txt` - Minified version for bookmark installation (generated)
-- `build-bookmarklet.js` - Build script
-- `README.md` - This file
+---
 
 ## Development
 
-To modify the optimizer:
-
-1. Edit `optimizer.js`
-2. Run `npm run build` to regenerate the bookmarklet
-3. Copy the new `bookmarklet.txt` contents to your bookmark
-
 ```bash
-npm install     # Install dependencies (first time only)
-npm run build   # Build the bookmarklet
+npm install          # Install dependencies (first time)
+npm run build        # Regenerate bookmarklet.txt
+npm test             # Run tests
 ```
 
-## Dependencies
+### Files
 
-This tool automatically loads [Cookie Monster](https://github.com/CookieMonsterTeam/CookieMonster) to handle the complex efficiency calculations. Cookie Monster also provides useful tooltip overlays showing PP values directly in the game UI.
+| File | Purpose |
+|------|---------|
+| `optimizer.js` | Source code (edit this) |
+| `bookmarklet.txt` | Generated minified bookmarklet |
+| `build-bookmarklet.js` | Build script |
+
+---
+
+## Troubleshooting
+
+### Panel not appearing
+
+```bash
+# Check browser console for errors (F12 → Console)
+# Ensure you're on orteil.dashnet.org/cookieclicker/
+```
+
+### Cookie Monster timeout
+
+If you see "Timeout waiting for Cookie Monster":
+1. Refresh the Cookie Clicker page
+2. Wait for game to fully load
+3. Click bookmarklet again
+
+### Auto-purchase not buying
+
+- Check if **Auto: ON** is enabled (green)
+- If **Gold: ON**, it may be saving for a golden upgrade
+- Check Lucky Bank status - may be protecting cookie reserve
+
+---
+
+## FAQ
+
+### Is this cheating?
+
+That's up to you. This tool automates decisions but doesn't hack the game. It uses the same calculations Cookie Monster provides - just with automation.
+
+### Why Cookie Monster?
+
+Cookie Monster has years of refinement on its PP calculations, accounting for synergies, achievements, and edge cases. Why reinvent the wheel?
+
+### Can I use without auto-purchase?
+
+Yes! By default, auto-purchase is OFF. The panel just shows recommendations - you decide when to buy.
+
+### Does it work on Steam version?
+
+No, this is for the [web version](https://orteil.dashnet.org/cookieclicker/) only.
+
+---
 
 ## Credits
 
-- [Cookie Monster](https://github.com/CookieMonsterTeam/CookieMonster) - The addon that powers the PP calculations
+- [Cookie Monster](https://github.com/CookieMonsterTeam/CookieMonster) - Powers the PP calculations
 - [Cookie Clicker](https://orteil.dashnet.org/cookieclicker/) by Orteil
