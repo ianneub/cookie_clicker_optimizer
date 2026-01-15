@@ -1221,9 +1221,12 @@
           html += `</div></div>`;
         } else if (!best.affordable && goldenUpgrades.length === 0) {
           // Only show "need more" if no golden section already shown
-          html += `<div class="cc-opt-item">`;
-          html += `<div class="cc-opt-saving">Need ${formatNumber(best.price - Game.cookies)} more</div>`;
-          html += `</div>`;
+          const needed = best.price - Game.cookies;
+          if (needed > 0) {
+            html += `<div class="cc-opt-item">`;
+            html += `<div class="cc-opt-saving">Need ${formatNumber(needed)} more</div>`;
+            html += `</div>`;
+          }
         }
       }
 
