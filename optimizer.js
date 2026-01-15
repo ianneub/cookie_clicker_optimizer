@@ -577,10 +577,7 @@
         </div>
         <div id="cc-opt-lucky-bank" style="display: none;">
           <div class="cc-opt-bank-icon">&#9733;</div>
-          <div class="cc-opt-bank-content">
-            <span class="cc-opt-bank-label">Lucky Bank</span>
-            <span id="cc-opt-lucky-value">0</span>
-          </div>
+          <div class="cc-opt-bank-content"></div>
         </div>
         <div id="cc-opt-wrinklers" style="display: none;">
           <div class="cc-opt-wrinkler-icon">&#128027;</div>
@@ -775,9 +772,15 @@
         .cc-opt-bank-content {
           display: flex;
           flex-direction: column;
-          gap: 1px;
+          gap: 2px;
           flex: 1;
           min-width: 0;
+        }
+
+        .cc-opt-bank-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
         }
 
         .cc-opt-bank-label {
@@ -787,16 +790,29 @@
           color: var(--cc-gold-dim);
         }
 
-        #cc-opt-lucky-value {
-          font-size: 11px;
-          color: var(--cc-green);
-          font-weight: 500;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+        .cc-opt-bank-phase {
+          font-size: 9px;
+          color: var(--cc-text-dim);
         }
 
-        #cc-opt-lucky-value.below-threshold {
+        .cc-opt-bank-values {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          font-size: 11px;
+        }
+
+        .cc-opt-bank-threshold {
+          color: var(--cc-cream);
+          font-weight: 500;
+        }
+
+        .cc-opt-bank-diff {
+          color: var(--cc-green);
+          font-weight: 500;
+        }
+
+        .cc-opt-bank-diff.below-threshold {
           color: var(--cc-red);
         }
 
@@ -1091,9 +1107,8 @@
      */
     function updateLuckyBankDisplay(luckyBankInfo, currentCookies) {
       const bankEl = document.getElementById('cc-opt-lucky-bank');
-      const valueEl = document.getElementById('cc-opt-lucky-value');
 
-      if (!bankEl || !valueEl) return;
+      if (!bankEl) return;
 
       // Handle hide case (luckyBankInfo === 0)
       if (luckyBankInfo === 0 || !state.autoGolden) {
@@ -1105,20 +1120,39 @@
       const { scaled, base, phaseName } = luckyBankInfo;
       const scalePercent = base > 0 ? Math.round((scaled / base) * 100) : 0;
 
-      // Build display text with phase info
-      let displayText = '';
+      // Get or create the content elements
+      const contentEl = bankEl.querySelector('.cc-opt-bank-content');
+      if (!contentEl) return;
+
+      // Build two-line display
+      let phaseText = `${phaseName} ${scalePercent}%`;
+      let thresholdText = '';
+      let diffText = '';
+      let isBelow = false;
+
       if (scaled === 0) {
-        displayText = `${phaseName} phase (0% bank)`;
-        valueEl.classList.remove('below-threshold');
-      } else if (currentCookies < scaled) {
-        displayText = `${formatNumber(scaled)} (need ${formatNumber(scaled - currentCookies)}) [${phaseName} ${scalePercent}%]`;
-        valueEl.classList.add('below-threshold');
+        thresholdText = '0 (disabled)';
+        diffText = '';
       } else {
-        displayText = `${formatNumber(scaled)} (+${formatNumber(currentCookies - scaled)}) [${phaseName} ${scalePercent}%]`;
-        valueEl.classList.remove('below-threshold');
+        thresholdText = formatNumber(scaled);
+        if (currentCookies < scaled) {
+          diffText = `Need ${formatNumber(scaled - currentCookies)}`;
+          isBelow = true;
+        } else {
+          diffText = `+${formatNumber(currentCookies - scaled)}`;
+        }
       }
 
-      valueEl.textContent = displayText;
+      contentEl.innerHTML = `
+        <div class="cc-opt-bank-header">
+          <span class="cc-opt-bank-label">Lucky Bank</span>
+          <span class="cc-opt-bank-phase">${phaseText}</span>
+        </div>
+        <div class="cc-opt-bank-values">
+          <span class="cc-opt-bank-threshold">${thresholdText}</span>
+          <span class="cc-opt-bank-diff${isBelow ? ' below-threshold' : ''}">${diffText}</span>
+        </div>
+      `;
     }
 
     /**
