@@ -130,8 +130,8 @@
 
   // Phase thresholds for game progression (based on CpS)
   const PHASE_THRESHOLDS = {
-    EARLY_TO_MID: 1000000,       // 100K CpS
-    MID_TO_LATE: 100000000,      // 10M CpS
+    EARLY_TO_MID: 1000000,      // 1M CpS
+    MID_TO_LATE: 100000000,     // 100M CpS
     LATE_TO_ENDGAME: 1000000000 // 1B CpS
   };
 
