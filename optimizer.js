@@ -130,8 +130,8 @@
 
   // Phase thresholds for game progression (based on CpS)
   const PHASE_THRESHOLDS = {
-    EARLY_TO_MID: 100000,       // 100K CpS
-    MID_TO_LATE: 10000000,      // 10M CpS
+    EARLY_TO_MID: 1000000,       // 100K CpS
+    MID_TO_LATE: 100000000,      // 10M CpS
     LATE_TO_ENDGAME: 1000000000 // 1B CpS
   };
 
@@ -905,13 +905,25 @@
     }
 
     /**
+     * Get unbuffed CpS (without Frenzy/buff multipliers)
+     * Falls back to regular cookiesPs if unbuffedCps not available
+     */
+    function getUnbuffedCps() {
+      if (typeof Game.unbuffedCps === 'number' && Game.unbuffedCps > 0) {
+        return Game.unbuffedCps;
+      }
+      return Game.cookiesPs;
+    }
+
+    /**
      * Find available Golden Cookie upgrades in the store (browser wrapper)
      * @param {Object|null} luckyBankInfo - Lucky bank info with phaseProgress, or null
      */
     function findGoldenCookieUpgrades(luckyBankInfo) {
       if (!state.autoGolden || typeof Game === 'undefined') return [];
       const phaseProgress = luckyBankInfo ? luckyBankInfo.phaseProgress : 0;
-      return findGoldenUpgradesInStore(Game.UpgradesInStore, Game.cookies, Game.cookiesPs, phaseProgress);
+      // Use unbuffed CpS for hours-to-afford calculation (not affected by Frenzy)
+      return findGoldenUpgradesInStore(Game.UpgradesInStore, Game.cookies, getUnbuffedCps(), phaseProgress);
     }
 
     /**
@@ -942,10 +954,11 @@
       state.lastUpgradeCount = getOwnedUpgrades();
 
       // Calculate Lucky bank threshold when Gold: ON
+      // Use unbuffed CpS for phase detection (not affected by Frenzy)
       let luckyBankInfo = null;
       let luckyBankScaled = 0;
       if (state.autoGolden) {
-        luckyBankInfo = getLuckyBank(CookieMonsterData.Cache, Game.cookiesPs);
+        luckyBankInfo = getLuckyBank(CookieMonsterData.Cache, getUnbuffedCps());
         luckyBankScaled = luckyBankInfo.scaled;
         updateLuckyBankDisplay(luckyBankInfo, Game.cookies);
       } else {
