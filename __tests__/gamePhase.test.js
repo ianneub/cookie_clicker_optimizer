@@ -14,8 +14,8 @@ const {
 
 describe('PHASE_THRESHOLDS', () => {
   it('should have correct threshold values', () => {
-    expect(PHASE_THRESHOLDS.EARLY_TO_MID).toBe(100000);      // 100K CpS
-    expect(PHASE_THRESHOLDS.MID_TO_LATE).toBe(10000000);     // 10M CpS
+    expect(PHASE_THRESHOLDS.EARLY_TO_MID).toBe(1000000);       // 1M CpS
+    expect(PHASE_THRESHOLDS.MID_TO_LATE).toBe(100000000);      // 100M CpS
     expect(PHASE_THRESHOLDS.LATE_TO_ENDGAME).toBe(1000000000); // 1B CpS
   });
 });
@@ -50,35 +50,35 @@ describe('calculatePhaseProgress', () => {
     expect(calculatePhaseProgress(-100)).toBe(0);
   });
 
-  it('should return values in early phase range (0-0.33) for CpS < 100K', () => {
+  it('should return values in early phase range (0-0.33) for CpS < 1M', () => {
     expect(calculatePhaseProgress(100)).toBeGreaterThan(0);
     expect(calculatePhaseProgress(100)).toBeLessThan(0.33);
 
-    expect(calculatePhaseProgress(10000)).toBeGreaterThan(0);
-    expect(calculatePhaseProgress(10000)).toBeLessThan(0.33);
+    expect(calculatePhaseProgress(100000)).toBeGreaterThan(0);
+    expect(calculatePhaseProgress(100000)).toBeLessThan(0.33);
   });
 
-  it('should return ~0.33 at early/mid threshold (100K CpS)', () => {
-    const result = calculatePhaseProgress(100000);
+  it('should return ~0.33 at early/mid threshold (1M CpS)', () => {
+    const result = calculatePhaseProgress(1000000);
     expect(result).toBeCloseTo(0.33, 2);
   });
 
-  it('should return values in mid phase range (0.33-0.66) for 100K-10M CpS', () => {
-    expect(calculatePhaseProgress(500000)).toBeGreaterThan(0.33);
-    expect(calculatePhaseProgress(500000)).toBeLessThan(0.66);
-
+  it('should return values in mid phase range (0.33-0.66) for 1M-100M CpS', () => {
     expect(calculatePhaseProgress(5000000)).toBeGreaterThan(0.33);
     expect(calculatePhaseProgress(5000000)).toBeLessThan(0.66);
+
+    expect(calculatePhaseProgress(50000000)).toBeGreaterThan(0.33);
+    expect(calculatePhaseProgress(50000000)).toBeLessThan(0.66);
   });
 
-  it('should return ~0.66 at mid/late threshold (10M CpS)', () => {
-    const result = calculatePhaseProgress(10000000);
+  it('should return ~0.66 at mid/late threshold (100M CpS)', () => {
+    const result = calculatePhaseProgress(100000000);
     expect(result).toBeCloseTo(0.66, 2);
   });
 
-  it('should return values in late phase range (0.66-1.0) for CpS > 10M', () => {
-    expect(calculatePhaseProgress(50000000)).toBeGreaterThan(0.66);
-    expect(calculatePhaseProgress(50000000)).toBeLessThan(1.0);
+  it('should return values in late phase range (0.66-1.0) for CpS > 100M', () => {
+    expect(calculatePhaseProgress(500000000)).toBeGreaterThan(0.66);
+    expect(calculatePhaseProgress(500000000)).toBeLessThan(1.0);
   });
 
   it('should cap at 1.0 for endgame CpS (>= 1B)', () => {

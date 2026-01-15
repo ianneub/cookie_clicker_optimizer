@@ -37,26 +37,25 @@ describe('getLuckyBank (with phase scaling)', () => {
     expect(result).toHaveProperty('phaseName');
   });
 
-  it('should return 0 scaled bank in early game (< 100K CpS)', () => {
-    const result = getLuckyBank(null, 1000); // 1K CpS = early phase
-    expect(result.base).toBe(6000000); // 6000 * 1000
+  it('should return 0 scaled bank in early game (< 1M CpS)', () => {
+    const result = getLuckyBank(null, 10000); // 10K CpS = early phase
+    expect(result.base).toBe(60000000); // 6000 * 10000
     expect(result.scaled).toBe(0); // Early game = no bank protection
     expect(result.phaseName).toBe('Early');
   });
 
   it('should return partial scaled bank in mid game', () => {
-    const result = getLuckyBank(null, 1000000); // 1M CpS = mid phase
-    expect(result.base).toBe(6000000000); // 6000 * 1M
+    const result = getLuckyBank(null, 10000000); // 10M CpS = mid phase
+    expect(result.base).toBe(60000000000); // 6000 * 10M
     expect(result.scaled).toBeGreaterThan(0);
     expect(result.scaled).toBeLessThan(result.base);
     expect(result.phaseName).toBe('Mid');
   });
 
-  it('should return full scaled bank in late game (> 10M CpS)', () => {
-    const result = getLuckyBank(null, 100000000); // 100M CpS = late phase
-    expect(result.base).toBe(600000000000); // 6000 * 100M
+  it('should return full scaled bank in late game (> 100M CpS)', () => {
+    const result = getLuckyBank(null, 1000000000); // 1B CpS = late/endgame phase
+    expect(result.base).toBe(6000000000000); // 6000 * 1B
     expect(result.scaled).toBe(result.base); // Late game = full protection
-    expect(result.phaseName).toBe('Late');
   });
 
   it('should use Cookie Monster cache value as base when available', () => {

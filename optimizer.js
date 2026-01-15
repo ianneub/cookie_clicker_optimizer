@@ -1047,7 +1047,10 @@
         const affordablePrioritizedGolden = goldenUpgrades.find(u =>
           u.prioritized && canAffordWithLuckyBank(Game.cookies, u.price, luckyBankScaled)
         );
+        const hasPendingPrioritizedGolden = goldenUpgrades.some(u => u.prioritized);
+
         if (state.autoGolden && affordablePrioritizedGolden) {
+          // Buy the golden upgrade now
           const cookiesBefore = Game.cookies;
           affordablePrioritizedGolden.gameUpgrade.buy();
           logAction('PURCHASE', {
@@ -1056,8 +1059,11 @@
             price: affordablePrioritizedGolden.price,
             cookies_before: cookiesBefore
           });
+        } else if (state.autoGolden && hasPendingPrioritizedGolden) {
+          // Save up for the prioritized golden upgrade - don't buy anything else
+          // (no purchase made this cycle)
         } else if (best && best.affordable) {
-          // Otherwise buy the best PP-based item (affordable already respects Lucky bank)
+          // No prioritized golden upgrades pending - buy the best PP-based item
           const cookiesBefore = Game.cookies;
           executePurchase(best);
           logAction('PURCHASE', {
