@@ -569,7 +569,7 @@
             <span id="cc-opt-golden">Gold: OFF</span>
             <span id="cc-opt-wrath" style="display: none;">Wrath: OFF</span>
             <span id="cc-opt-wrinkler" style="display: none;">Wrnk: OFF</span>
-            <span id="cc-opt-close">x</span>
+            <span id="cc-opt-close">X</span>
           </div>
         </div>
         <div id="cc-opt-lucky-bank" style="display: none;">
@@ -687,11 +687,15 @@
         #cc-opt-close {
           cursor: pointer;
           color: #ff6666;
-          font-size: 14px;
-          padding: 0 4px;
+          font-size: 10px;
+          padding: 2px 6px;
+          border-radius: 3px;
+          background: #333;
+          line-height: 1;
         }
         #cc-opt-close:hover {
           color: #ff0000;
+          background: #444;
         }
         #cc-opt-content {
           padding: 8px 10px;
