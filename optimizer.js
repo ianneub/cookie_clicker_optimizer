@@ -563,27 +563,36 @@
       state.displayElement.id = 'cc-optimizer';
       state.displayElement.innerHTML = `
         <div id="cc-opt-header">
-          <span>Optimizer</span>
-          <div id="cc-opt-controls">
-            <span id="cc-opt-auto">Auto: OFF</span>
-            <span id="cc-opt-golden">Gold: OFF</span>
-            <span id="cc-opt-wrath" style="display: none;">Wrath: OFF</span>
-            <span id="cc-opt-wrinkler" style="display: none;">Wrnk: OFF</span>
-            <span id="cc-opt-close">X</span>
+          <div class="cc-opt-title">
+            <span class="cc-opt-cookie-icon">&#127850;</span>
+            <span>Optimizer</span>
           </div>
+          <button id="cc-opt-close" aria-label="Close">&times;</button>
+        </div>
+        <div id="cc-opt-toggles">
+          <button id="cc-opt-auto" class="cc-opt-toggle" data-label="Auto">OFF</button>
+          <button id="cc-opt-golden" class="cc-opt-toggle" data-label="Gold">OFF</button>
+          <button id="cc-opt-wrath" class="cc-opt-toggle" data-label="Wrath" style="display: none;">OFF</button>
+          <button id="cc-opt-wrinkler" class="cc-opt-toggle" data-label="Wrnk" style="display: none;">OFF</button>
         </div>
         <div id="cc-opt-lucky-bank" style="display: none;">
-          <span class="cc-opt-lucky-label">Lucky Bank: </span>
-          <span id="cc-opt-lucky-value">0</span>
+          <div class="cc-opt-bank-icon">&#9733;</div>
+          <div class="cc-opt-bank-content">
+            <span class="cc-opt-bank-label">Lucky Bank</span>
+            <span id="cc-opt-lucky-value">0</span>
+          </div>
         </div>
         <div id="cc-opt-wrinklers" style="display: none;">
-          <div class="cc-opt-wrinkler-header">
-            <span class="cc-opt-wrinkler-label">Wrinklers: </span>
-            <span id="cc-opt-wrinkler-count">0/10</span>
-          </div>
-          <div class="cc-opt-wrinkler-reward">
-            <span>Pop Reward: </span>
-            <span id="cc-opt-wrinkler-reward">0</span>
+          <div class="cc-opt-wrinkler-icon">&#128027;</div>
+          <div class="cc-opt-wrinkler-content">
+            <div class="cc-opt-wrinkler-row">
+              <span class="cc-opt-wrinkler-label">Wrinklers</span>
+              <span id="cc-opt-wrinkler-count">0/10</span>
+            </div>
+            <div class="cc-opt-wrinkler-row cc-opt-wrinkler-reward-row">
+              <span>Pop Reward</span>
+              <span id="cc-opt-wrinkler-reward">0</span>
+            </div>
           </div>
           <div id="cc-opt-wrinkler-action" style="display: none;"></div>
         </div>
@@ -592,213 +601,372 @@
 
       const style = document.createElement('style');
       style.textContent = `
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=DM+Sans:wght@400;500;700&display=swap');
+
         #cc-optimizer {
+          --cc-bg-dark: #1a1210;
+          --cc-bg-card: #2a201a;
+          --cc-bg-hover: #3a2a20;
+          --cc-border: #4a3828;
+          --cc-border-light: #5a4838;
+          --cc-gold: #f4b942;
+          --cc-gold-dim: #c4993a;
+          --cc-cream: #f5e6d3;
+          --cc-cream-dim: #bfaa94;
+          --cc-green: #7dcea0;
+          --cc-red: #e57373;
+          --cc-purple: #b39ddb;
+          --cc-text: #e8ddd0;
+          --cc-text-dim: #9a8b7a;
+
           position: fixed;
           top: 10px;
           left: 10px;
-          background: rgba(0, 0, 0, 0.85);
-          border: 2px solid #4a3000;
-          border-radius: 8px;
-          color: #fff;
-          font-family: Arial, sans-serif;
-          font-size: 12px;
-          min-width: 200px;
-          max-width: 280px;
+          background: var(--cc-bg-dark);
+          border: 1px solid var(--cc-border);
+          border-radius: 12px;
+          color: var(--cc-text);
+          font-family: 'DM Sans', system-ui, sans-serif;
+          font-size: 13px;
+          width: 260px;
           z-index: 99999999;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+          box-shadow:
+            0 4px 24px rgba(0,0,0,0.5),
+            0 0 0 1px rgba(244,185,66,0.1),
+            inset 0 1px 0 rgba(255,255,255,0.03);
+          overflow: hidden;
         }
+
         #cc-opt-header {
-          background: linear-gradient(to bottom, #5a4020, #3a2810);
-          padding: 6px 10px;
-          font-weight: bold;
-          color: #ffd700;
+          background: linear-gradient(135deg, var(--cc-bg-card) 0%, var(--cc-bg-dark) 100%);
+          padding: 10px 12px;
           display: flex;
           justify-content: space-between;
           align-items: center;
-          border-radius: 6px 6px 0 0;
+          border-bottom: 1px solid var(--cc-border);
           cursor: move;
-          gap: 12px;
         }
-        #cc-opt-controls {
+
+        .cc-opt-title {
           display: flex;
           align-items: center;
           gap: 8px;
         }
-        #cc-opt-auto {
-          cursor: pointer;
-          font-size: 10px;
-          padding: 2px 6px;
-          border-radius: 3px;
-          background: #333;
-          color: #999;
+
+        .cc-opt-cookie-icon {
+          font-size: 18px;
+          filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
-        #cc-opt-auto:hover {
-          background: #444;
+
+        .cc-opt-title span:last-child {
+          font-family: 'Caveat', cursive;
+          font-size: 20px;
+          font-weight: 600;
+          color: var(--cc-gold);
+          letter-spacing: 0.5px;
+          text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
-        #cc-opt-auto.active {
-          background: #2a5a2a;
-          color: #90EE90;
-        }
-        #cc-opt-golden {
-          cursor: pointer;
-          font-size: 10px;
-          padding: 2px 6px;
-          border-radius: 3px;
-          background: #333;
-          color: #999;
-        }
-        #cc-opt-golden:hover {
-          background: #444;
-        }
-        #cc-opt-golden.active {
-          background: #5a4a2a;
-          color: #ffd700;
-        }
-        #cc-opt-wrath {
-          cursor: pointer;
-          font-size: 10px;
-          padding: 2px 6px;
-          border-radius: 3px;
-          background: #333;
-          color: #999;
-        }
-        #cc-opt-wrath:hover {
-          background: #444;
-        }
-        #cc-opt-wrath.active {
-          background: #5a2a2a;
-          color: #ff6666;
-        }
-        #cc-opt-wrinkler {
-          cursor: pointer;
-          font-size: 10px;
-          padding: 2px 6px;
-          border-radius: 3px;
-          background: #333;
-          color: #999;
-        }
-        #cc-opt-wrinkler:hover {
-          background: #444;
-        }
-        #cc-opt-wrinkler.active {
-          background: #3a2a4a;
-          color: #b388ff;
-        }
+
         #cc-opt-close {
+          width: 24px;
+          height: 24px;
+          border: none;
+          background: var(--cc-bg-hover);
+          color: var(--cc-text-dim);
+          border-radius: 6px;
           cursor: pointer;
-          color: #ff6666;
-          font-size: 10px;
-          padding: 2px 6px;
-          border-radius: 3px;
-          background: #333;
+          font-size: 18px;
           line-height: 1;
-        }
-        #cc-opt-close:hover {
-          color: #ff0000;
-          background: #444;
-        }
-        #cc-opt-content {
-          padding: 8px 10px;
-        }
-        .cc-opt-item {
-          margin-bottom: 6px;
-          padding-bottom: 6px;
-          border-bottom: 1px solid #333;
-        }
-        .cc-opt-item:last-child {
-          margin-bottom: 0;
-          padding-bottom: 0;
-          border-bottom: none;
-        }
-        .cc-opt-label {
-          color: #aaa;
-          font-size: 10px;
-          text-transform: uppercase;
-          margin-bottom: 2px;
-        }
-        .cc-opt-name {
-          color: #ffd700;
-          font-weight: bold;
-        }
-        .cc-opt-stats {
-          color: #ccc;
-          font-size: 11px;
-        }
-        .cc-opt-affordable {
-          color: #90EE90;
-        }
-        .cc-opt-saving {
-          color: #ff9999;
-        }
-        .cc-opt-golden-section {
-          background: linear-gradient(to right, rgba(255, 215, 0, 0.15), transparent);
-          border-left: 3px solid #ffd700;
-          padding-left: 7px;
-          margin-left: -7px;
-        }
-        .cc-opt-golden-label {
-          color: #ffd700 !important;
-        }
-        .cc-opt-golden-name {
-          color: #ffec8b !important;
-        }
-        .cc-opt-golden-deferred {
-          opacity: 0.6;
-          border-left-color: #888;
-          background: linear-gradient(to right, rgba(128, 128, 128, 0.1), transparent);
-        }
-        .cc-opt-golden-deferred .cc-opt-golden-label {
-          color: #aaa !important;
-        }
-        .cc-opt-golden-deferred .cc-opt-golden-name {
-          color: #ccc !important;
-        }
-        #cc-opt-lucky-bank {
-          background: linear-gradient(to right, rgba(255, 215, 0, 0.1), transparent);
-          padding: 4px 10px;
-          border-bottom: 1px solid #333;
-          font-size: 11px;
-        }
-        .cc-opt-lucky-label {
-          color: #ffd700;
-        }
-        #cc-opt-lucky-value {
-          color: #90EE90;
-        }
-        #cc-opt-lucky-value.below-threshold {
-          color: #ff6666;
-        }
-        #cc-opt-wrinklers {
-          background: linear-gradient(to right, rgba(128, 0, 128, 0.15), transparent);
-          padding: 4px 10px;
-          border-bottom: 1px solid #333;
-          font-size: 11px;
-        }
-        .cc-opt-wrinkler-header {
           display: flex;
-          justify-content: space-between;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.15s ease;
         }
-        .cc-opt-wrinkler-label {
-          color: #b388ff;
+
+        #cc-opt-close:hover {
+          background: var(--cc-red);
+          color: white;
+          transform: scale(1.05);
         }
-        #cc-opt-wrinkler-count {
-          color: #b388ff;
+
+        #cc-opt-toggles {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
+          gap: 6px;
+          padding: 10px 12px;
+          background: var(--cc-bg-card);
+          border-bottom: 1px solid var(--cc-border);
         }
-        .cc-opt-wrinkler-reward {
-          color: #ccc;
+
+        .cc-opt-toggle {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+          padding: 6px 4px;
+          border: 1px solid var(--cc-border);
+          background: var(--cc-bg-dark);
+          color: var(--cc-text-dim);
+          border-radius: 8px;
+          cursor: pointer;
+          font-family: inherit;
           font-size: 10px;
+          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          transition: all 0.15s ease;
         }
-        #cc-opt-wrinkler-reward {
-          color: #90EE90;
+
+        .cc-opt-toggle::before {
+          content: attr(data-label);
+          font-size: 9px;
+          color: var(--cc-text-dim);
+          opacity: 0.7;
         }
-        #cc-opt-wrinkler-action {
-          color: #b388ff;
-          font-size: 10px;
-          font-style: italic;
+
+        .cc-opt-toggle:hover {
+          background: var(--cc-bg-hover);
+          border-color: var(--cc-border-light);
+        }
+
+        .cc-opt-toggle.active {
+          background: linear-gradient(135deg, rgba(125,206,160,0.15) 0%, rgba(125,206,160,0.05) 100%);
+          border-color: var(--cc-green);
+          color: var(--cc-green);
+          box-shadow: 0 0 12px rgba(125,206,160,0.2);
+        }
+
+        #cc-opt-golden.active {
+          background: linear-gradient(135deg, rgba(244,185,66,0.15) 0%, rgba(244,185,66,0.05) 100%);
+          border-color: var(--cc-gold);
+          color: var(--cc-gold);
+          box-shadow: 0 0 12px rgba(244,185,66,0.2);
+        }
+
+        #cc-opt-wrath.active {
+          background: linear-gradient(135deg, rgba(229,115,115,0.15) 0%, rgba(229,115,115,0.05) 100%);
+          border-color: var(--cc-red);
+          color: var(--cc-red);
+          box-shadow: 0 0 12px rgba(229,115,115,0.2);
+        }
+
+        #cc-opt-wrinkler.active {
+          background: linear-gradient(135deg, rgba(179,157,219,0.15) 0%, rgba(179,157,219,0.05) 100%);
+          border-color: var(--cc-purple);
+          color: var(--cc-purple);
+          box-shadow: 0 0 12px rgba(179,157,219,0.2);
+        }
+
+        #cc-opt-lucky-bank {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 12px;
+          background: linear-gradient(90deg, rgba(244,185,66,0.08) 0%, transparent 100%);
+          border-bottom: 1px solid var(--cc-border);
+        }
+
+        .cc-opt-bank-icon {
+          font-size: 16px;
+          color: var(--cc-gold);
+          opacity: 0.8;
+        }
+
+        .cc-opt-bank-content {
+          display: flex;
+          flex-direction: column;
+          gap: 1px;
+          flex: 1;
+          min-width: 0;
+        }
+
+        .cc-opt-bank-label {
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          color: var(--cc-gold-dim);
+        }
+
+        #cc-opt-lucky-value {
+          font-size: 11px;
+          color: var(--cc-green);
+          font-weight: 500;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        #cc-opt-lucky-value.below-threshold {
+          color: var(--cc-red);
+        }
+
+        #cc-opt-wrinklers {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 8px 12px;
+          background: linear-gradient(90deg, rgba(179,157,219,0.08) 0%, transparent 100%);
+          border-bottom: 1px solid var(--cc-border);
+        }
+
+        .cc-opt-wrinkler-icon {
+          font-size: 14px;
+          opacity: 0.8;
           margin-top: 2px;
         }
+
+        .cc-opt-wrinkler-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .cc-opt-wrinkler-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .cc-opt-wrinkler-label {
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          color: var(--cc-purple);
+        }
+
+        #cc-opt-wrinkler-count {
+          font-size: 12px;
+          color: var(--cc-purple);
+          font-weight: 500;
+        }
+
+        .cc-opt-wrinkler-reward-row {
+          font-size: 10px;
+          color: var(--cc-text-dim);
+        }
+
+        #cc-opt-wrinkler-reward {
+          color: var(--cc-green);
+          font-weight: 500;
+        }
+
+        #cc-opt-wrinkler-action {
+          width: 100%;
+          margin-top: 4px;
+          padding-top: 4px;
+          border-top: 1px dashed var(--cc-border);
+          font-size: 10px;
+          color: var(--cc-purple);
+          font-style: italic;
+        }
+
         .cc-opt-shiny {
-          color: #ffeb3b;
+          color: var(--cc-gold) !important;
+        }
+
+        #cc-opt-content {
+          padding: 12px;
+          padding-bottom: 14px;
+        }
+
+        .cc-opt-item {
+          padding: 10px 10px 12px 10px;
+          margin-bottom: 10px;
+          background: var(--cc-bg-card);
+          border: 1px solid var(--cc-border);
+          border-radius: 8px;
+          transition: all 0.15s ease;
+        }
+
+        .cc-opt-item:last-child {
+          margin-bottom: 0;
+          padding-bottom: 14px;
+          border-bottom: 1px solid var(--cc-border-light);
+        }
+
+        .cc-opt-item:hover {
+          border-color: var(--cc-border-light);
+          background: var(--cc-bg-hover);
+        }
+
+        .cc-opt-label {
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          color: var(--cc-text-dim);
+          margin-bottom: 4px;
+          display: block;
+        }
+
+        .cc-opt-name {
+          font-size: 14px;
+          font-weight: 700;
+          color: var(--cc-cream);
+          margin-bottom: 4px;
+          display: block;
+        }
+
+        .cc-opt-stats {
+          font-size: 11px;
+          color: var(--cc-text-dim);
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          flex-wrap: wrap;
+          padding-bottom: 2px;
+        }
+
+        .cc-opt-affordable {
+          color: var(--cc-green) !important;
+          font-weight: 600;
+        }
+
+        .cc-opt-saving {
+          color: var(--cc-red);
+        }
+
+        .cc-opt-golden-section {
+          background: linear-gradient(135deg, rgba(244,185,66,0.1) 0%, rgba(244,185,66,0.02) 100%);
+          border-color: var(--cc-gold-dim);
+          position: relative;
+          overflow: hidden;
+        }
+
+        .cc-opt-golden-section::before {
+          content: '\\2605';
+          position: absolute;
+          top: 8px;
+          right: 10px;
+          font-size: 12px;
+          color: var(--cc-gold);
+          opacity: 0.4;
+        }
+
+        .cc-opt-golden-label {
+          color: var(--cc-gold-dim) !important;
+        }
+
+        .cc-opt-golden-name {
+          color: var(--cc-gold) !important;
+        }
+
+        .cc-opt-golden-deferred {
+          opacity: 0.5;
+          border-color: var(--cc-border);
+          background: var(--cc-bg-card);
+        }
+
+        .cc-opt-golden-deferred::before {
+          opacity: 0.2;
+        }
+
+        .cc-opt-golden-deferred .cc-opt-golden-label {
+          color: var(--cc-text-dim) !important;
+        }
+
+        .cc-opt-golden-deferred .cc-opt-golden-name {
+          color: var(--cc-cream-dim) !important;
         }
       `;
       document.head.appendChild(style);
@@ -858,10 +1026,10 @@
       if (!btn) btn = document.getElementById('cc-opt-auto');
       if (!btn) return;
       if (state.autoPurchase) {
-        btn.textContent = 'Auto: ON';
+        btn.textContent = 'ON';
         btn.classList.add('active');
       } else {
-        btn.textContent = 'Auto: OFF';
+        btn.textContent = 'OFF';
         btn.classList.remove('active');
       }
     }
@@ -873,16 +1041,16 @@
       if (!btn) btn = document.getElementById('cc-opt-golden');
       if (!btn) return;
       if (state.autoGolden) {
-        btn.textContent = 'Gold: ON';
+        btn.textContent = 'ON';
         btn.classList.add('active');
       } else {
-        btn.textContent = 'Gold: OFF';
+        btn.textContent = 'OFF';
         btn.classList.remove('active');
       }
       // Show/hide wrath button based on golden state
       const wrathBtn = document.getElementById('cc-opt-wrath');
       if (wrathBtn) {
-        wrathBtn.style.display = state.autoGolden ? 'inline' : 'none';
+        wrathBtn.style.display = state.autoGolden ? 'flex' : 'none';
       }
     }
 
@@ -893,10 +1061,10 @@
       if (!btn) btn = document.getElementById('cc-opt-wrath');
       if (!btn) return;
       if (state.autoWrath) {
-        btn.textContent = 'Wrath: ON';
+        btn.textContent = 'ON';
         btn.classList.add('active');
       } else {
-        btn.textContent = 'Wrath: OFF';
+        btn.textContent = 'OFF';
         btn.classList.remove('active');
       }
     }
@@ -908,10 +1076,10 @@
       if (!btn) btn = document.getElementById('cc-opt-wrinkler');
       if (!btn) return;
       if (state.autoWrinklers) {
-        btn.textContent = 'Wrnk: ON';
+        btn.textContent = 'ON';
         btn.classList.add('active');
       } else {
-        btn.textContent = 'Wrnk: OFF';
+        btn.textContent = 'OFF';
         btn.classList.remove('active');
       }
     }
@@ -933,7 +1101,7 @@
         return;
       }
 
-      bankEl.style.display = 'block';
+      bankEl.style.display = 'flex';
       const { scaled, base, phaseName } = luckyBankInfo;
       const scalePercent = base > 0 ? Math.round((scaled / base) * 100) : 0;
 
@@ -1191,8 +1359,8 @@
       }
 
       // Show section and button
-      sectionEl.style.display = 'block';
-      if (wrinklerBtn) wrinklerBtn.style.display = 'inline';
+      sectionEl.style.display = 'flex';
+      if (wrinklerBtn) wrinklerBtn.style.display = 'flex';
 
       // Update count (with shiny indicator)
       let countText = `${stats.count}/${stats.max}`;
