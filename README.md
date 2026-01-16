@@ -154,6 +154,16 @@ During Grandmapocalypse:
 - Highlights shiny wrinklers (3.3× reward, never auto-popped)
 - Suggests when popping enables faster purchases
 
+### Grandmapocalypse Protection
+
+The optimizer **never recommends or auto-purchases** grandmapocalypse research upgrades:
+- One mind
+- Communal brainsweep
+- Arcane sugar
+- Elder Pact
+
+This keeps your game in the "clean" state without wrinklers or wrath cookies. If you want grandmapocalypse, purchase these upgrades manually.
+
 ---
 
 ## Comparison
