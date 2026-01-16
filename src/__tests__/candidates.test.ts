@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { filterAndSortCandidates, isGoldenCookieUpgrade, isToggleUpgrade } from '../core/candidates';
+import { filterAndSortCandidates, isGoldenCookieUpgrade, isGrandmapocalypseUpgrade, isToggleUpgrade } from '../core/candidates';
 import type { Candidate } from '../types';
 
 describe('filterAndSortCandidates', () => {
@@ -107,5 +107,20 @@ describe('isToggleUpgrade', () => {
   it('should return false for non-toggle upgrades', () => {
     expect(isToggleUpgrade('Lucky day')).toBe(false);
     expect(isToggleUpgrade('Cursor')).toBe(false);
+  });
+});
+
+describe('isGrandmapocalypseUpgrade', () => {
+  it('should return true for grandmapocalypse research upgrades', () => {
+    expect(isGrandmapocalypseUpgrade('One mind')).toBe(true);
+    expect(isGrandmapocalypseUpgrade('Communal brainsweep')).toBe(true);
+    expect(isGrandmapocalypseUpgrade('Arcane sugar')).toBe(true);
+    expect(isGrandmapocalypseUpgrade('Elder Pact')).toBe(true);
+  });
+
+  it('should return false for other upgrades', () => {
+    expect(isGrandmapocalypseUpgrade('Lucky day')).toBe(false);
+    expect(isGrandmapocalypseUpgrade('Elder Pledge')).toBe(false);
+    expect(isGrandmapocalypseUpgrade('Cursor')).toBe(false);
   });
 });

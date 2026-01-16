@@ -39,3 +39,11 @@ export const TOGGLE_UPGRADES = new Set([
   'Elder Covenant',
   'Revoke Elder Covenant',
 ]);
+
+// Grandmapocalypse research upgrades - excluded to prevent wrinklers/wrath cookies
+export const GRANDMAPOCALYPSE_UPGRADES = new Set([
+  'One mind',
+  'Communal brainsweep',
+  'Arcane sugar',
+  'Elder Pact',
+]);

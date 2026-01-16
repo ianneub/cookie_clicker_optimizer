@@ -2,7 +2,7 @@
  * Candidate filtering and evaluation
  */
 
-import { GOLDEN_COOKIE_UPGRADES, TOGGLE_UPGRADES } from './constants';
+import { GOLDEN_COOKIE_UPGRADES, GRANDMAPOCALYPSE_UPGRADES, TOGGLE_UPGRADES } from './constants';
 import type { Candidate } from '../types';
 
 /**
@@ -26,4 +26,11 @@ export function isGoldenCookieUpgrade(upgradeName: string): boolean {
  */
 export function isToggleUpgrade(upgradeName: string): boolean {
   return TOGGLE_UPGRADES.has(upgradeName);
+}
+
+/**
+ * Check if an upgrade is a grandmapocalypse research upgrade (excluded from optimization)
+ */
+export function isGrandmapocalypseUpgrade(upgradeName: string): boolean {
+  return GRANDMAPOCALYPSE_UPGRADES.has(upgradeName);
 }

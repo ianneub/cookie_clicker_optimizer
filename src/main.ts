@@ -6,14 +6,14 @@ import styles from './ui/styles.css?inline';
 import { CM_URL, MAX_WAIT_TIME, POLL_INTERVAL, REFRESH_INTERVAL } from './core/constants';
 import { logAction } from './core/formatting';
 import { getLuckyBank, canAffordWithLuckyBank } from './core/luckyBank';
-import { filterAndSortCandidates, isToggleUpgrade } from './core/candidates';
+import { filterAndSortCandidates } from './core/candidates';
 import { shouldPopForPurchase } from './core/wrinklers';
 import {
   getTotalBuildings,
   executePurchaseItem,
   isCMDataReady,
 } from './browser/game';
-import { findGoldenUpgradesInStore } from './browser/purchases';
+import { collectUpgradeCandidates, findGoldenUpgradesInStore } from './browser/purchases';
 import { clickGoldenCookies } from './browser/cookies';
 import { getWrinklerStats, popNormalWrinklers } from './browser/wrinklers';
 import { getDisplay, cleanupPanel } from './ui/panel';
@@ -189,31 +189,15 @@ function findBestPurchase(state: OptimizerState): void {
   }
 
   // Collect upgrade PP values
-  for (const name in CookieMonsterData.Upgrades) {
-    if (!Object.prototype.hasOwnProperty.call(CookieMonsterData.Upgrades, name)) continue;
-    const upgrade = CookieMonsterData.Upgrades[name];
-    const gameUpgrade = Game.Upgrades[name];
-
-    if (
-      upgrade &&
-      gameUpgrade &&
-      Game.UpgradesInStore.includes(gameUpgrade) &&
-      upgrade.pp !== undefined &&
-      !isToggleUpgrade(name)
-    ) {
-      const price = gameUpgrade.getPrice();
-      const isAffordable = state.autoGolden
-        ? canAffordWithLuckyBank(Game.cookies, price, luckyBankScaled)
-        : Game.cookies >= price;
-      candidates.push({
-        name: name,
-        type: 'Upgrade',
-        pp: upgrade.pp,
-        price: price,
-        affordable: isAffordable,
-      });
-    }
-  }
+  const upgradeCandidates = collectUpgradeCandidates(
+    CookieMonsterData.Upgrades,
+    Game.Upgrades,
+    Game.UpgradesInStore,
+    Game.cookies,
+    luckyBankScaled,
+    state.autoGolden
+  );
+  candidates.push(...upgradeCandidates);
 
   // Filter and sort candidates
   const validCandidates = filterAndSortCandidates(candidates);
