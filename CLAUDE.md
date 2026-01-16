@@ -4,36 +4,17 @@
 
 This is a Cookie Clicker optimizer bookmarklet that uses Cookie Monster's payback period calculations to recommend the most efficient purchase.
 
+For project structure, commands, testing, and development workflows, see [DEVELOPMENT.md](DEVELOPMENT.md).
+
 ## Plan Mode
 
 - Make the plan extremely concise. Sacrifice grammar for the sake of concision.
 - At the end of each plan, give me a list of unresolved questions to answer, if any.
 
-## Build Process
-
-After modifying `optimizer.js`, regenerate the bookmarklet by running:
-
-```bash
-npm run build
-```
-
-This uses `build-bookmarklet.js` which:
-
-1. Reads `optimizer.js`
-2. Minifies it using terser
-3. Prepends `javascript:` prefix
-4. Writes output to `bookmarklet.txt`
-
-## File Structure
-
-- `optimizer.js` - Main source code (edit this file)
-- `bookmarklet.txt` - Generated minified bookmarklet (do not edit directly)
-- `build-bookmarklet.js` - Build script using terser
-- `README.md` - User documentation
-
 ## Documentation
 
 Always update `README.md` when making changes that affect user-facing functionality, such as:
+
 - Adding new features or controls
 - Changing existing behavior
 - Modifying the UI
@@ -51,11 +32,6 @@ flowchart TD
 ````
 
 See [Mermaid documentation](https://mermaid.js.org/intro/) for syntax.
-
-## Dependencies
-
-- Cookie Monster addon is loaded automatically at runtime via `Game.LoadMod()`
-- terser (dev dependency) for minification
 
 ## Key APIs Used
 

@@ -3,6 +3,7 @@ node_modules/
 
 # Build output (regenerate with `npm run build`)
 bookmarklet.txt
+dist/
 _site/
 
 # OS files
@@ -18,3 +19,6 @@ Thumbs.db
 # Debug/temp files
 *.log
 output.txt
+
+# Test coverage
+coverage/

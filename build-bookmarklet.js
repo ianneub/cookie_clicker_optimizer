@@ -11,7 +11,10 @@ const fs = require('fs');
 const path = require('path');
 const { minify } = require('terser');
 
-const INPUT_FILE = path.join(__dirname, 'optimizer.js');
+// Use TypeScript bundled output if available, otherwise fall back to optimizer.js
+const DIST_FILE = path.join(__dirname, 'dist', 'main.global.js');
+const LEGACY_FILE = path.join(__dirname, 'optimizer.js');
+const INPUT_FILE = fs.existsSync(DIST_FILE) ? DIST_FILE : LEGACY_FILE;
 const OUTPUT_FILE = path.join(__dirname, 'bookmarklet.txt');
 
 /**

@@ -99,7 +99,7 @@ Visit the **[Installation Page](https://ianneub.github.io/cookie_clicker_optimiz
 ### Browser Console
 
 ```javascript
-// Copy contents of optimizer.js and paste into DevTools Console (F12)
+// Copy contents of dist/main.global.js and paste into DevTools Console (F12)
 ```
 
 ---
@@ -173,17 +173,20 @@ During Grandmapocalypse:
 
 ```bash
 npm install          # Install dependencies (first time)
-npm run build        # Regenerate bookmarklet.txt
+npm run build        # Build TypeScript + generate bookmarklet
 npm test             # Run tests
+npm run typecheck    # Type checking
 ```
 
-### Files
+See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed project structure and workflows.
 
-| File | Purpose |
+### Key Files
+
+| Path | Purpose |
 |------|---------|
-| `optimizer.js` | Source code (edit this) |
+| `src/` | TypeScript source code |
+| `dist/main.global.js` | Bundled JavaScript |
 | `bookmarklet.txt` | Generated minified bookmarklet |
-| `build-bookmarklet.js` | Build script |
 
 ---
 

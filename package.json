@@ -4,23 +4,34 @@
   "description": "A bookmarklet that tells you the most efficient purchase in Cookie Clicker by leveraging [Cookie Monster](https://github.com/CookieMonsterTeam/CookieMonster)'s payback period calculations.",
   "main": "build-bookmarklet.js",
   "scripts": {
-    "build": "node build-bookmarklet.js",
+    "build:ts": "tsup",
+    "build": "tsup && node build-bookmarklet.js",
     "build:site": "node build-site.js",
     "build:all": "npm run build && npm run build:site",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@vitest/coverage-v8": "^4.0.17",
+    "eslint": "^9.39.2",
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
     "playwright": "^1.57.0",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "terser": "^5.44.1"
+    "terser": "^5.44.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.53.0",
+    "vitest": "^4.0.17"
   }
 }
