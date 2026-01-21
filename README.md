@@ -164,6 +164,10 @@ The optimizer **never recommends or auto-purchases** grandmapocalypse research u
 
 This keeps your game in the "clean" state without wrinklers or wrath cookies. If you want grandmapocalypse, purchase these upgrades manually.
 
+### Golden Switch Exclusion
+
+The optimizer **never recommends** the Golden Switch. While it provides +50% passive CpS, it completely disables golden cookies. For active/semi-active play, golden cookie combos (Lucky + Frenzy) provide more value than the passive boost.
+
 ---
 
 ## Comparison

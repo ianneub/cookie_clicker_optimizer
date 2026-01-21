@@ -38,6 +38,7 @@ export const TOGGLE_UPGRADES = new Set([
   'Elder Pledge',
   'Elder Covenant',
   'Revoke Elder Covenant',
+  'Golden switch [off]',
 ]);
 
 // Grandmapocalypse research upgrades - excluded to prevent wrinklers/wrath cookies
