@@ -39,6 +39,20 @@ export function checkForPurchaseState(
   };
 }
 
+// Upgrades that show a confirmation prompt after purchase
+const PROMPT_UPGRADES = new Set(['One mind']);
+
+/**
+ * Click the first option button in the prompt (typically "Yes")
+ * Cookie Clicker prompts use #promptOption0 for the first button
+ */
+function clickPromptYes(): void {
+  const yesButton = document.getElementById('promptOption0') as HTMLElement | null;
+  if (yesButton) {
+    yesButton.click();
+  }
+}
+
 /**
  * Execute a purchase for the given item
  */
@@ -75,6 +89,11 @@ export function executePurchaseItem(
     const upgrade = gameUpgrades[item.name];
     if (upgrade) {
       upgrade.buy();
+      // Auto-confirm prompt for certain upgrades (e.g., One mind)
+      if (PROMPT_UPGRADES.has(item.name)) {
+        // Use setTimeout to allow the prompt to render before clicking
+        setTimeout(clickPromptYes, 50);
+      }
       return true;
     }
   }

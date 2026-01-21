@@ -3,7 +3,7 @@
  */
 
 import { GOLDEN_COOKIE_UPGRADES } from '../core/constants';
-import { isGrandmapocalypseUpgrade, isToggleUpgrade } from '../core/candidates';
+import { isBlockedGrandmapocalypseUpgrade, isToggleUpgrade } from '../core/candidates';
 import { evaluateGoldenUpgradePriority } from '../core/phase';
 import type { Upgrade, GoldenUpgrade, Candidate, CMUpgradeData } from '../types';
 
@@ -69,7 +69,7 @@ export function collectUpgradeCandidates(
       upgradesInStore.includes(gameUpgrade) &&
       cmUpgrade.pp !== undefined &&
       !isToggleUpgrade(name) &&
-      !isGrandmapocalypseUpgrade(name)
+      !isBlockedGrandmapocalypseUpgrade(name)
     ) {
       const price = gameUpgrade.getPrice();
       const isAffordable = useLuckyBank

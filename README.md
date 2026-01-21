@@ -154,15 +154,22 @@ During Grandmapocalypse:
 - Highlights shiny wrinklers (3.3× reward, never auto-popped)
 - Suggests when popping enables faster purchases
 
-### Grandmapocalypse Protection
+### Grandmapocalypse Handling
 
-The optimizer **never recommends or auto-purchases** grandmapocalypse research upgrades:
-- One mind
+The optimizer **recommends "One mind"** to trigger Stage 1 Grandmapocalypse, which provides:
+
+- **Wrinklers** (6× passive CpS multiplier)
+- **67% Golden Cookies** (only 33% Wrath Cookies)
+
+This is the optimal balance for active players who click golden cookies.
+
+The optimizer **blocks Stage 2+ upgrades** to prevent further progression:
+
 - Communal brainsweep
 - Arcane sugar
 - Elder Pact
 
-This keeps your game in the "clean" state without wrinklers or wrath cookies. If you want grandmapocalypse, purchase these upgrades manually.
+These would increase Wrath Cookie rate to 66-100%, disrupting golden cookie combos. If you want full Grandmapocalypse, purchase these manually.
 
 ### Golden Switch Exclusion
 

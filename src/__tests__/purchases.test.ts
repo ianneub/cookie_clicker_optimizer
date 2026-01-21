@@ -303,7 +303,7 @@ describe('collectUpgradeCandidates', () => {
     };
   });
 
-  it('should exclude grandmapocalypse research upgrades', () => {
+  it('should include One mind (Stage 1) but exclude Stage 2+ grandmapocalypse upgrades', () => {
     const upgradesInStore = [
       gameUpgrades['Reinforced index finger']!,
       gameUpgrades['One mind']!,
@@ -321,10 +321,10 @@ describe('collectUpgradeCandidates', () => {
       false
     );
 
-    expect(result).toHaveLength(1);
-    expect(result[0]?.name).toBe('Reinforced index finger');
-    expect(result.find(c => c.name === 'One mind')).toBeUndefined();
-    expect(result.find(c => c.name === 'Communal brainsweep')).toBeUndefined();
+    expect(result).toHaveLength(2);
+    expect(result.find(c => c.name === 'Reinforced index finger')).toBeDefined();
+    expect(result.find(c => c.name === 'One mind')).toBeDefined(); // Stage 1 allowed
+    expect(result.find(c => c.name === 'Communal brainsweep')).toBeUndefined(); // Stage 2 blocked
     expect(result.find(c => c.name === 'Arcane sugar')).toBeUndefined();
     expect(result.find(c => c.name === 'Elder Pact')).toBeUndefined();
   });

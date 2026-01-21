@@ -2,7 +2,7 @@
  * Candidate filtering and evaluation
  */
 
-import { GOLDEN_COOKIE_UPGRADES, GRANDMAPOCALYPSE_UPGRADES, TOGGLE_UPGRADES } from './constants';
+import { GOLDEN_COOKIE_UPGRADES, GRANDMAPOCALYPSE_STAGE2_UPGRADES, TOGGLE_UPGRADES } from './constants';
 import type { Candidate } from '../types';
 
 /**
@@ -29,8 +29,9 @@ export function isToggleUpgrade(upgradeName: string): boolean {
 }
 
 /**
- * Check if an upgrade is a grandmapocalypse research upgrade (excluded from optimization)
+ * Check if an upgrade is a Stage 2+ grandmapocalypse upgrade (excluded from optimization)
+ * Stage 1 ("One mind") is allowed as it provides wrinklers with only 33% wrath cookies
  */
-export function isGrandmapocalypseUpgrade(upgradeName: string): boolean {
-  return GRANDMAPOCALYPSE_UPGRADES.has(upgradeName);
+export function isBlockedGrandmapocalypseUpgrade(upgradeName: string): boolean {
+  return GRANDMAPOCALYPSE_STAGE2_UPGRADES.has(upgradeName);
 }

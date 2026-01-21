@@ -41,9 +41,9 @@ export const TOGGLE_UPGRADES = new Set([
   'Golden switch [off]',
 ]);
 
-// Grandmapocalypse research upgrades - excluded to prevent wrinklers/wrath cookies
-export const GRANDMAPOCALYPSE_UPGRADES = new Set([
-  'One mind',
+// Grandmapocalypse Stage 2+ upgrades - excluded to keep Golden Cookies accessible
+// "One mind" (Stage 1) is allowed as it provides wrinklers with only 33% wrath cookies
+export const GRANDMAPOCALYPSE_STAGE2_UPGRADES = new Set([
   'Communal brainsweep',
   'Arcane sugar',
   'Elder Pact',

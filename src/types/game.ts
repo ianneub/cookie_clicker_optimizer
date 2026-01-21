@@ -48,6 +48,7 @@ export interface Game {
   Has: (name: string) => boolean;
   LoadMod: (url: string) => void;
   getWrinklersMax?: () => number;
+  ClosePrompt?: () => void;
 }
 
 declare global {

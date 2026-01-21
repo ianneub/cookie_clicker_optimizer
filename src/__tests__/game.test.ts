@@ -62,6 +62,17 @@ describe('executePurchaseItem', () => {
   it('should return false for non-existent building', () => {
     expect(executePurchaseItem({ name: 'NonExistent', type: 'Building' }, {}, {})).toBe(false);
   });
+
+  it('should buy One mind upgrade', () => {
+    let bought = false;
+    const gameUpgrades = {
+      'One mind': { buy: () => { bought = true; } },
+    };
+
+    const result = executePurchaseItem({ name: 'One mind', type: 'Upgrade' }, {}, gameUpgrades as any);
+    expect(result).toBe(true);
+    expect(bought).toBe(true);
+  });
 });
 
 describe('isCMDataReady', () => {
