@@ -2,7 +2,7 @@
  * Tests for purchase-related functions
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { executePurchaseItem, checkForPurchaseState } from '../browser/game';
 import { collectUpgradeCandidates, findGoldenUpgradesInStore } from '../browser/purchases';
 import {

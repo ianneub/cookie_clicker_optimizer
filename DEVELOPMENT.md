@@ -33,18 +33,18 @@ src/
 ## Commands
 
 ```bash
-npm run build      # Build TypeScript + generate bookmarklet
-npm run build:ts   # Build TypeScript only (outputs to dist/)
-npm test           # Run tests
-npm run test:watch # Run tests in watch mode
-npm run typecheck  # TypeScript type checking
+bun run build      # Build TypeScript + generate bookmarklet
+bun run build:ts   # Build TypeScript only (outputs to dist/)
+bun test           # Run tests
+bun run test:watch # Run tests in watch mode
+bun run typecheck  # TypeScript type checking
 ```
 
 ## Build Pipeline
 
 ```
 src/**/*.ts + src/ui/styles.css
-    ↓ tsup (TypeScript bundler)
+    ↓ esbuild (via build.ts)
 dist/main.global.js + dist/main.global.js.map
     ↓ build-bookmarklet.js (terser minification)
 bookmarklet.txt
@@ -128,16 +128,16 @@ Game.elderWrath = 3;                     // Max grandmapocalypse (enables wrinkl
 
 ## Testing
 
-Tests use Vitest and are located in `src/__tests__/`. Run with:
+Tests use Bun's built-in test runner and are located in `src/__tests__/`. Run with:
 
 ```bash
-npm test              # Run once
-npm run test:watch    # Watch mode
-npm run test:coverage # With coverage report
-npm run typecheck     # Type checking (run this too!)
+bun test              # Run once
+bun run test:watch    # Watch mode
+bun run test:coverage # With coverage report
+bun run typecheck     # Type checking (run this too!)
 ```
 
-**Important:** Always run both `npm test` AND `npm run typecheck` before committing. Tests alone don't catch type errors because Vitest uses esbuild which strips types without validating them. Type errors can indicate bugs even when tests pass.
+**Important:** Always run both `bun test` AND `bun run typecheck` before committing. Tests alone don't catch type errors because Bun strips types without validating them. Type errors can indicate bugs even when tests pass.
 
 ## Adding New Features
 
@@ -146,4 +146,4 @@ npm run typecheck     # Type checking (run this too!)
 3. Add UI components to `src/ui/`
 4. Export from the appropriate `index.ts`
 5. Add tests in `src/__tests__/`
-6. Run `npm run build` to generate the bookmarklet
+6. Run `bun run build` to generate the bookmarklet

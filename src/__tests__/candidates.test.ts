@@ -2,7 +2,7 @@
  * Tests for candidate functions
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { filterAndSortCandidates, isGoldenCookieUpgrade, isBlockedGrandmapocalypseUpgrade, isToggleUpgrade } from '../core/candidates';
 import type { Candidate } from '../types';
 

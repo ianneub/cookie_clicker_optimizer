@@ -1,21 +1,21 @@
-#!/usr/bin/env node
-
 /**
  * Build script that converts optimizer.js into a minified bookmarklet
  *
- * Usage: node build-bookmarklet.js
+ * Usage: bun build-bookmarklet.js
  * Output: bookmarklet.txt
  */
 
-const fs = require('fs');
-const path = require('path');
-const { minify } = require('terser');
+import { minify } from 'terser';
+import { existsSync } from 'fs';
+import { join } from 'path';
+
+const __dirname = import.meta.dir;
 
 // Use TypeScript bundled output if available, otherwise fall back to optimizer.js
-const DIST_FILE = path.join(__dirname, 'dist', 'main.global.js');
-const LEGACY_FILE = path.join(__dirname, 'optimizer.js');
-const INPUT_FILE = fs.existsSync(DIST_FILE) ? DIST_FILE : LEGACY_FILE;
-const OUTPUT_FILE = path.join(__dirname, 'bookmarklet.txt');
+const DIST_FILE = join(__dirname, 'dist', 'main.global.js');
+const LEGACY_FILE = join(__dirname, 'optimizer.js');
+const INPUT_FILE = existsSync(DIST_FILE) ? DIST_FILE : LEGACY_FILE;
+const OUTPUT_FILE = join(__dirname, 'bookmarklet.txt');
 
 /**
  * Minify CSS by removing unnecessary whitespace
@@ -86,7 +86,7 @@ async function buildBookmarklet() {
   // Read the source file
   let source;
   try {
-    source = fs.readFileSync(INPUT_FILE, 'utf8');
+    source = await Bun.file(INPUT_FILE).text();
   } catch (err) {
     console.error(`Error reading ${INPUT_FILE}:`, err.message);
     process.exit(1);
@@ -138,7 +138,7 @@ async function buildBookmarklet() {
 
   // Write output
   try {
-    fs.writeFileSync(OUTPUT_FILE, bookmarklet);
+    await Bun.write(OUTPUT_FILE, bookmarklet);
     console.log(`Bookmarklet written to ${OUTPUT_FILE}`);
     console.log(`Original size: ${source.length} characters`);
     console.log(`Minified size: ${bookmarklet.length} characters`);

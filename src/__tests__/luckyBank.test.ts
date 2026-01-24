@@ -2,7 +2,7 @@
  * Tests for Lucky bank functions
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from 'bun:test';
 import { getBaseLuckyBank, getLuckyBank, canAffordWithLuckyBank } from '../core/luckyBank';
 
 describe('getBaseLuckyBank', () => {

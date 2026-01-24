@@ -193,10 +193,10 @@ The optimizer **never recommends** the Golden Switch. While it provides +50% pas
 ## Development
 
 ```bash
-npm install          # Install dependencies (first time)
-npm run build        # Build TypeScript + generate bookmarklet
-npm test             # Run tests
-npm run typecheck    # Type checking
+bun install          # Install dependencies (first time)
+bun run build        # Build TypeScript + generate bookmarklet
+bun test             # Run tests
+bun run typecheck    # Type checking
 ```
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed project structure and workflows.

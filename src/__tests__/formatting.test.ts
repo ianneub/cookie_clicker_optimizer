@@ -2,7 +2,7 @@
  * Tests for formatting functions
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, spyOn } from 'bun:test';
 import { formatNumber, logAction } from '../core/formatting';
 
 describe('formatNumber', () => {
@@ -91,7 +91,7 @@ describe('formatNumber', () => {
 
 describe('logAction', () => {
   it('should log with timestamp and action', () => {
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
 
     logAction('TEST', { value: 123 });
 

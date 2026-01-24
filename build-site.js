@@ -1,21 +1,23 @@
-const fs = require('fs');
-const path = require('path');
+import { join } from 'path';
+import { existsSync, mkdirSync, readdirSync } from 'fs';
 
-const TEMPLATE = path.join(__dirname, 'site/index.html');
-const BOOKMARKLET = path.join(__dirname, 'bookmarklet.txt');
-const OUTPUT_DIR = path.join(__dirname, '_site');
-const OUTPUT = path.join(OUTPUT_DIR, 'index.html');
-const IMAGES_SRC = path.join(__dirname, 'images');
-const IMAGES_DEST = path.join(OUTPUT_DIR, 'images');
+const __dirname = import.meta.dir;
+
+const TEMPLATE = join(__dirname, 'site/index.html');
+const BOOKMARKLET = join(__dirname, 'bookmarklet.txt');
+const OUTPUT_DIR = join(__dirname, '_site');
+const OUTPUT = join(OUTPUT_DIR, 'index.html');
+const IMAGES_SRC = join(__dirname, 'images');
+const IMAGES_DEST = join(OUTPUT_DIR, 'images');
 
 // Ensure output directory exists
-if (!fs.existsSync(OUTPUT_DIR)) {
-  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+if (!existsSync(OUTPUT_DIR)) {
+  mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 
 // Read files
-const template = fs.readFileSync(TEMPLATE, 'utf8');
-const bookmarklet = fs.readFileSync(BOOKMARKLET, 'utf8').trim();
+const template = await Bun.file(TEMPLATE).text();
+const bookmarklet = (await Bun.file(BOOKMARKLET).text()).trim();
 
 // HTML-encode for use in href attribute (prevents browser from rendering embedded text)
 const bookmarkletHref = bookmarklet
@@ -35,20 +37,20 @@ const html = template
   .replace(/\{\{BOOKMARKLET_JS\}\}/g, bookmarkletJS);
 
 // Write output
-fs.writeFileSync(OUTPUT, html);
+await Bun.write(OUTPUT, html);
 console.log('Site built: _site/index.html');
 
 // Copy images directory if it exists
-if (fs.existsSync(IMAGES_SRC)) {
-  if (!fs.existsSync(IMAGES_DEST)) {
-    fs.mkdirSync(IMAGES_DEST, { recursive: true });
+if (existsSync(IMAGES_SRC)) {
+  if (!existsSync(IMAGES_DEST)) {
+    mkdirSync(IMAGES_DEST, { recursive: true });
   }
 
-  const files = fs.readdirSync(IMAGES_SRC);
+  const files = readdirSync(IMAGES_SRC);
   for (const file of files) {
-    const src = path.join(IMAGES_SRC, file);
-    const dest = path.join(IMAGES_DEST, file);
-    fs.copyFileSync(src, dest);
+    const src = join(IMAGES_SRC, file);
+    const dest = join(IMAGES_DEST, file);
+    await Bun.write(dest, Bun.file(src));
     console.log(`Copied: images/${file}`);
   }
 }

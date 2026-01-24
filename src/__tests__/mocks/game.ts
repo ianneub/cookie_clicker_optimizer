@@ -3,7 +3,7 @@
  * Mimics Cookie Clicker's Game global
  */
 
-import { vi } from 'vitest';
+import { mock } from 'bun:test';
 import type { Building, Upgrade, Game, Shimmer } from '../../types/game';
 
 export function createBuildingMock(
@@ -17,7 +17,7 @@ export function createBuildingMock(
     amount,
     locked,
     price: basePrice,
-    getSumPrice: vi.fn((qty: number) => {
+    getSumPrice: mock((qty: number) => {
       // Simplified price calculation (actual game uses geometric series)
       let total = 0;
       for (let i = 0; i < qty; i++) {
@@ -25,7 +25,7 @@ export function createBuildingMock(
       }
       return total;
     }),
-    buy: vi.fn(),
+    buy: mock(),
   };
 }
 
@@ -39,8 +39,8 @@ export function createUpgradeMock(
     basePrice: price,
     bought,
     unlocked: true,
-    getPrice: vi.fn(() => price),
-    buy: vi.fn(),
+    getPrice: mock(() => price),
+    buy: mock(),
   };
 }
 
@@ -102,7 +102,7 @@ export function createGameMock(options: GameMockOptions = {}): Game {
     shimmers,
     wrinklers: [],
     mods: {},
-    Has: vi.fn(() => false),
-    LoadMod: vi.fn(),
+    Has: mock(() => false),
+    LoadMod: mock(),
   };
 }
