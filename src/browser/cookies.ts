@@ -1,14 +1,14 @@
 /**
- * Golden/wrath cookie clicking
+ * Shimmer clicking (golden cookies, wrath cookies, reindeer)
  */
 
 import { logAction } from '../core/formatting';
 import type { Shimmer } from '../types';
 
 /**
- * Click golden cookies (and optionally wrath cookies) if enabled
+ * Click shimmers (golden cookies, wrath cookies, reindeer) if enabled
  */
-export function clickGoldenCookies(
+export function clickShimmers(
   shimmers: Shimmer[],
   autoGolden: boolean,
   autoWrath: boolean,
@@ -28,6 +28,12 @@ export function clickGoldenCookies(
           cookies_before: cookiesBefore,
         });
       }
+    } else if (shimmer.type === 'reindeer') {
+      const cookiesBefore = getCookies();
+      shimmer.pop();
+      logAction('REINDEER_CLICK', {
+        cookies_before: cookiesBefore,
+      });
     }
   }
 }

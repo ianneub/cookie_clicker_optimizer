@@ -129,11 +129,12 @@ When enabled, automatically buys the best PP item as soon as affordable. Disable
 
 When **Gold: ON**:
 - Auto-clicks golden cookies instantly
+- Auto-clicks reindeer during Christmas season
 - Shows "Golden Priority" section for spawn-rate upgrades
 - Prioritizes golden upgrades when combined with Auto
 - **Wrath** toggle appears for red cookies
 
-Test with: `new Game.shimmer('golden')` in console
+Test with: `new Game.shimmer('golden')` or `new Game.shimmer('reindeer')` in console
 
 ### Lucky Bank Protection
 

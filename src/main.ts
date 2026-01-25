@@ -14,7 +14,7 @@ import {
   isCMDataReady,
 } from './browser/game';
 import { collectUpgradeCandidates, findGoldenUpgradesInStore } from './browser/purchases';
-import { clickGoldenCookies } from './browser/cookies';
+import { clickShimmers } from './browser/cookies';
 import { getWrinklerStats, popNormalWrinklers } from './browser/wrinklers';
 import { getDisplay, cleanupPanel } from './ui/panel';
 import {
@@ -354,8 +354,8 @@ function startAutoRefresh(state: OptimizerState): void {
     const now = Date.now();
     const timeSinceLastCheck = now - lastCheck;
 
-    // Always check for golden cookies (runs every 200ms)
-    clickGoldenCookies(Game.shimmers, state.autoGolden, state.autoWrath, () => Game.cookies);
+    // Always check for shimmers: golden cookies, wrath cookies, reindeer (runs every 200ms)
+    clickShimmers(Game.shimmers, state.autoGolden, state.autoWrath, () => Game.cookies);
 
     // Check for purchases every 200ms
     if (checkForPurchase(state)) {

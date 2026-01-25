@@ -21,7 +21,7 @@ export interface Upgrade {
 }
 
 export interface Shimmer {
-  type: string;
+  type: string; // 'golden' | 'reindeer' - golden includes wrath cookies (wrath=1)
   wrath: number;
   pop: () => void;
 }
