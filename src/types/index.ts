@@ -2,8 +2,6 @@
  * Internal types for the Cookie Clicker Optimizer
  */
 
-export type Phase = 'Early' | 'Mid' | 'Late' | 'Endgame';
-
 export interface Candidate {
   name: string;
   type: 'Building' | 'Upgrade';
@@ -42,11 +40,6 @@ export interface WrinklerStats {
 export interface PopDecision {
   shouldPop: boolean;
   reason: string;
-}
-
-export interface PurchaseCheckResult {
-  purchased: boolean;
-  newState: Pick<OptimizerState, 'lastBuildingCount' | 'lastUpgradeCount'>;
 }
 
 export interface OptimizerState {

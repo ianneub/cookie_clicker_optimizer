@@ -7,14 +7,17 @@ import type { Shimmer } from '../types';
 
 /**
  * Click shimmers (golden cookies, wrath cookies, reindeer) if enabled
+ * @returns true if any shimmer was clicked
  */
 export function clickShimmers(
   shimmers: Shimmer[],
   autoGolden: boolean,
   autoWrath: boolean,
   getCookies: () => number
-): void {
-  if (!autoGolden) return;
+): boolean {
+  if (!autoGolden) return false;
+
+  let clicked = false;
 
   for (const shimmer of shimmers) {
     if (shimmer.type === 'golden') {
@@ -27,6 +30,7 @@ export function clickShimmers(
           shimmer_type: shimmerType,
           cookies_before: cookiesBefore,
         });
+        clicked = true;
       }
     } else if (shimmer.type === 'reindeer') {
       const cookiesBefore = getCookies();
@@ -34,6 +38,9 @@ export function clickShimmers(
       logAction('REINDEER_CLICK', {
         cookies_before: cookiesBefore,
       });
+      clicked = true;
     }
   }
+
+  return clicked;
 }

@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'bun:test';
-import { executePurchaseItem, checkForPurchaseState } from '../browser/game';
+import { executePurchaseItem } from '../browser/game';
 import { collectUpgradeCandidates, findGoldenUpgradesInStore } from '../browser/purchases';
 import {
   createBuildingMock,
@@ -163,34 +163,6 @@ describe('executePurchaseItem', () => {
 
       expect(result).toBe(false);
     });
-  });
-});
-
-describe('checkForPurchaseState', () => {
-  it('should detect building purchase', () => {
-    const state = { lastBuildingCount: 10, lastUpgradeCount: 5 };
-
-    const result = checkForPurchaseState(state, 11, 5);
-
-    expect(result.purchased).toBe(true);
-    expect(result.newState.lastBuildingCount).toBe(11);
-  });
-
-  it('should detect upgrade purchase', () => {
-    const state = { lastBuildingCount: 10, lastUpgradeCount: 5 };
-
-    const result = checkForPurchaseState(state, 10, 6);
-
-    expect(result.purchased).toBe(true);
-    expect(result.newState.lastUpgradeCount).toBe(6);
-  });
-
-  it('should return false when no change', () => {
-    const state = { lastBuildingCount: 10, lastUpgradeCount: 5 };
-
-    const result = checkForPurchaseState(state, 10, 5);
-
-    expect(result.purchased).toBe(false);
   });
 });
 

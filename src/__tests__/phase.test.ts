@@ -4,28 +4,10 @@
 
 import { describe, it, expect } from 'bun:test';
 import {
-  smoothstep,
   calculatePhaseProgress,
-  getPhaseName,
   getMaxGoldenSaveHours,
   evaluateGoldenUpgradePriority,
 } from '../core/phase';
-
-describe('smoothstep', () => {
-  it('should return 0 when x <= edge0', () => {
-    expect(smoothstep(0, 0, 1)).toBe(0);
-    expect(smoothstep(-1, 0, 1)).toBe(0);
-  });
-
-  it('should return 1 when x >= edge1', () => {
-    expect(smoothstep(1, 0, 1)).toBe(1);
-    expect(smoothstep(2, 0, 1)).toBe(1);
-  });
-
-  it('should return 0.5 at midpoint', () => {
-    expect(smoothstep(0.5, 0, 1)).toBe(0.5);
-  });
-});
 
 describe('calculatePhaseProgress', () => {
   it('should return 0 for 0 CpS', () => {
@@ -49,31 +31,6 @@ describe('calculatePhaseProgress', () => {
   it('should return 1.0 at 1B CpS (endgame)', () => {
     const progress = calculatePhaseProgress(1_000_000_000);
     expect(progress).toBe(1.0);
-  });
-});
-
-describe('getPhaseName', () => {
-  it('should return "Early" for progress < 0.33', () => {
-    expect(getPhaseName(0)).toBe('Early');
-    expect(getPhaseName(0.1)).toBe('Early');
-    expect(getPhaseName(0.32)).toBe('Early');
-  });
-
-  it('should return "Mid" for progress 0.33-0.66', () => {
-    expect(getPhaseName(0.33)).toBe('Mid');
-    expect(getPhaseName(0.5)).toBe('Mid');
-    expect(getPhaseName(0.65)).toBe('Mid');
-  });
-
-  it('should return "Late" for progress 0.66-0.9', () => {
-    expect(getPhaseName(0.66)).toBe('Late');
-    expect(getPhaseName(0.8)).toBe('Late');
-    expect(getPhaseName(0.89)).toBe('Late');
-  });
-
-  it('should return "Endgame" for progress >= 0.9', () => {
-    expect(getPhaseName(0.9)).toBe('Endgame');
-    expect(getPhaseName(1.0)).toBe('Endgame');
   });
 });
 

@@ -3,16 +3,7 @@
  */
 
 import { PHASE_THRESHOLDS } from './constants';
-import type { Phase, GoldenUpgradeEvaluation } from '../types';
-
-/**
- * Smoothstep interpolation function for smooth transitions
- * Returns 0 when x <= edge0, 1 when x >= edge1, smooth curve between
- */
-export function smoothstep(x: number, edge0: number, edge1: number): number {
-  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
-  return t * t * (3 - 2 * t);
-}
+import type { GoldenUpgradeEvaluation } from '../types';
 
 /**
  * Calculate game phase progress from 0.0 (very early) to 1.0 (endgame)
@@ -43,16 +34,6 @@ export function calculatePhaseProgress(cps: number): number {
     );
     return 0.66 + lateProgress * 0.34;
   }
-}
-
-/**
- * Get human-readable phase name
- */
-export function getPhaseName(phaseProgress: number): Phase {
-  if (phaseProgress < 0.33) return 'Early';
-  if (phaseProgress < 0.66) return 'Mid';
-  if (phaseProgress < 0.9) return 'Late';
-  return 'Endgame';
 }
 
 /**

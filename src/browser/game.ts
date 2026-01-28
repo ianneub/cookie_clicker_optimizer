@@ -2,7 +2,7 @@
  * Game object wrappers for browser environment
  */
 
-import type { Building, Upgrade, PurchaseCheckResult } from '../types';
+import type { Building, Upgrade } from '../types';
 
 /**
  * Get total count of owned buildings
@@ -18,25 +18,6 @@ export function getTotalBuildings(gameObjects: Record<string, Building>): number
     }
   }
   return total;
-}
-
-/**
- * Check if a purchase was made since last check
- */
-export function checkForPurchaseState(
-  state: { lastBuildingCount: number; lastUpgradeCount: number },
-  currentBuildings: number,
-  currentUpgrades: number
-): PurchaseCheckResult {
-  const purchased =
-    currentBuildings !== state.lastBuildingCount || currentUpgrades !== state.lastUpgradeCount;
-  return {
-    purchased,
-    newState: {
-      lastBuildingCount: currentBuildings,
-      lastUpgradeCount: currentUpgrades,
-    },
-  };
 }
 
 // Upgrades that show a confirmation prompt after purchase

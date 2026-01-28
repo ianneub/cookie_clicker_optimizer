@@ -125,8 +125,11 @@ function findBestPurchase(state: OptimizerState): void {
   state.lastBuildingCount = getTotalBuildings(Game.Objects);
   state.lastUpgradeCount = Game.UpgradesOwned;
 
+  // Cache unbuffed CpS for use throughout this function
+  const unbuffedCps = getUnbuffedCps();
+
   // Get phase progress for golden upgrade evaluation
-  const phaseProgress = calculatePhaseProgress(getUnbuffedCps());
+  const phaseProgress = calculatePhaseProgress(unbuffedCps);
 
   // Get wrinkler stats
   const wrinklerStats = getWrinklerStats({
@@ -182,9 +185,9 @@ function findBestPurchase(state: OptimizerState): void {
   // Filter and sort candidates
   const validCandidates = filterAndSortCandidates(candidates);
 
-  // Calculate Lucky bank based on best item price
+  // Calculate Lucky bank based on best item price (disabled in early game)
   const bestPrice = validCandidates[0]?.price;
-  const luckyBankScaled = state.autoGolden ? getLuckyBank(bestPrice) : 0;
+  const luckyBankScaled = state.autoGolden ? getLuckyBank(bestPrice, unbuffedCps) : 0;
 
   // Update affordability based on lucky bank
   for (const c of validCandidates) {
@@ -257,15 +260,30 @@ function findBestPurchase(state: OptimizerState): void {
     } else if (state.autoGolden && hasPendingPrioritizedGolden) {
       // Save up for the prioritized golden upgrade
     } else if (best && best.affordable) {
-      const cookiesBefore = Game.cookies;
-      executePurchaseItem(best, Game.Objects, Game.Upgrades);
-      logAction('PURCHASE', {
-        item: best.name,
-        type: best.type,
-        price: best.price,
-        pp: best.pp,
-        cookies_before: cookiesBefore,
-      });
+      // Batch purchase: buy multiple items per tick while affordable
+      const MAX_BATCH = 10;
+      for (let i = 0; i < MAX_BATCH; i++) {
+        // Find best affordable item from current candidates
+        const affordable = validCandidates.find((c) =>
+          state.autoGolden
+            ? canAffordWithLuckyBank(Game.cookies, c.price, luckyBankScaled)
+            : Game.cookies >= c.price
+        );
+        if (!affordable) break;
+
+        const cookiesBefore = Game.cookies;
+        const purchased = executePurchaseItem(affordable, Game.Objects, Game.Upgrades);
+        if (!purchased) break;
+
+        logAction('PURCHASE', {
+          item: affordable.name,
+          type: affordable.type,
+          price: affordable.price,
+          pp: affordable.pp,
+          cookies_before: cookiesBefore,
+          batch_index: i,
+        });
+      }
     } else if (
       state.autoWrinklers &&
       wrinklerStats &&
@@ -359,13 +377,15 @@ function startAutoRefresh(state: OptimizerState): void {
     const timeSinceLastCheck = now - lastCheck;
 
     // Always check for shimmers: golden cookies, wrath cookies, reindeer (runs every 200ms)
-    clickShimmers(Game.shimmers, state.autoGolden, state.autoWrath, () => Game.cookies);
+    const shimmerClicked = clickShimmers(
+      Game.shimmers,
+      state.autoGolden,
+      state.autoWrath,
+      () => Game.cookies
+    );
 
-    // Check for purchases every 200ms
-    if (checkForPurchase(state)) {
-      findBestPurchase(state);
-      lastCheck = now;
-    } else if (timeSinceLastCheck >= REFRESH_INTERVAL) {
+    // Recalc immediately if shimmer clicked (golden cookie burst), purchase detected, or time elapsed
+    if (shimmerClicked || checkForPurchase(state) || timeSinceLastCheck >= REFRESH_INTERVAL) {
       findBestPurchase(state);
       lastCheck = now;
     }
