@@ -30,7 +30,7 @@ A bookmarklet that displays the most efficient purchase in Cookie Clicker using 
 | **Best Purchase Display** | Shows the optimal item based on Payback Period (lower = better) |
 | **Auto-Purchase** | Automatically buys the best item when you can afford it |
 | **Golden Cookie Handling** | Auto-clicks golden/wrath cookies, prioritizes golden upgrades |
-| **Lucky Bank Protection** | Reserves cookies for max Lucky rewards (phase-aware scaling) |
+| **Lucky Bank Protection** | Reserves cookies (3× best item price, capped at 6000× CpS) |
 | **Wrinkler Management** | Tracks wrinkler rewards, suggests when to pop for faster progress |
 
 ---
@@ -138,15 +138,13 @@ Test with: `new Game.shimmer('golden')` or `new Game.shimmer('reindeer')` in con
 
 ### Lucky Bank Protection
 
-Reserves cookies for max Lucky + Frenzy rewards. Scales by game phase:
+Reserves cookies for max Lucky + Frenzy rewards:
 
-| Phase | CpS Range | Bank Protection | Golden Upgrade Priority |
-|-------|-----------|-----------------|------------------------|
-| Early | < 1M | 0% (disabled) | Only if < 30 min |
-| Mid | 1M - 100M | Scales 0% → 100% | Up to 4 hours |
-| Late | > 100M | 100% (full) | Up to 12 hours |
+- **3× best item price** - ensures you can buy after Lucky
+- **Capped at 6000× CpS** - prevents excessive hoarding
+- **Disabled below 1M CpS** - Lucky not significant early game
 
-**Why?** Lucky gives `min(15% of bank, 900 × CpS)`. During Frenzy, you need 42,000 × base CpS banked for max reward.
+**Example:** Best item 1T, CpS 100M → Bank = min(3T, 600B) = 600B
 
 ### Wrinkler Management
 
@@ -176,6 +174,13 @@ These would increase Wrath Cookie rate to 66-100%, disrupting golden cookie comb
 
 The optimizer **never recommends** the Golden Switch. While it provides +50% passive CpS, it completely disables golden cookies. For active/semi-active play, golden cookie combos (Lucky + Frenzy) provide more value than the passive boost.
 
+### Other Excluded Upgrades
+
+The optimizer also excludes:
+
+- **Shimmering veil** - Toggle upgrade, costs sugar lumps
+- **Season switchers** - Repeatable with escalating costs (Festive/Ghostly/etc biscuits)
+
 ---
 
 ## Comparison
@@ -185,7 +190,7 @@ The optimizer **never recommends** the Golden Switch. While it provides +50% pas
 | Best purchase recommendation | ✅ Floating panel | ⚠️ Hover tooltips | ❌ Mental math |
 | Auto-purchasing | ✅ One click | ❌ Manual | ❌ Manual |
 | Golden cookie handling | ✅ Auto-click + prioritize | ⚠️ Notifications only | ❌ Watch constantly |
-| Lucky bank management | ✅ Phase-aware auto | ⚠️ Manual tracking | ❌ Guesswork |
+| Lucky bank management | ✅ Auto (3× price, 6000× CpS cap) | ⚠️ Manual tracking | ❌ Guesswork |
 | Wrinkler optimization | ✅ Pop suggestions | ⚠️ Shows reward only | ❌ Guesswork |
 | Setup time | ✅ ~5 seconds | ⚠️ ~30 seconds | N/A |
 
@@ -196,8 +201,6 @@ The optimizer **never recommends** the Golden Switch. While it provides +50% pas
 ```bash
 bun install          # Install dependencies (first time)
 bun run build        # Build TypeScript + generate bookmarklet
-bun test             # Run tests
-bun run typecheck    # Type checking
 ```
 
 See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed project structure and workflows.

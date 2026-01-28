@@ -4,7 +4,11 @@
 
 import { describe, it, expect } from 'bun:test';
 import { getLuckyBank, canAffordWithLuckyBank } from '../core/luckyBank';
-import { LUCKY_BANK_PRICE_MULTIPLIER, PHASE_THRESHOLDS } from '../core/constants';
+import {
+  LUCKY_BANK_CPS_CAP_MULTIPLIER,
+  LUCKY_BANK_PRICE_MULTIPLIER,
+  PHASE_THRESHOLDS,
+} from '../core/constants';
 
 const MID_GAME_CPS = PHASE_THRESHOLDS.EARLY_TO_MID; // 1M CpS
 const EARLY_GAME_CPS = 1000; // 1K CpS
@@ -34,6 +38,22 @@ describe('getLuckyBank', () => {
 
   it('should floor the result', () => {
     expect(getLuckyBank(333, MID_GAME_CPS)).toBe(Math.floor(333 * LUCKY_BANK_PRICE_MULTIPLIER));
+  });
+
+  it('should use 3x price when below 6000x CpS cap', () => {
+    // Price: 1M, CpS: 1M → 3x price = 3M, 6000x CpS = 6B → use 3M
+    const price = 1_000_000;
+    const cps = MID_GAME_CPS;
+    const expected = price * LUCKY_BANK_PRICE_MULTIPLIER;
+    expect(getLuckyBank(price, cps)).toBe(expected);
+  });
+
+  it('should cap at 6000x CpS when 3x price exceeds it', () => {
+    // Price: 10B, CpS: 1M → 3x price = 30B, 6000x CpS = 6B → use 6B
+    const price = 10_000_000_000;
+    const cps = MID_GAME_CPS;
+    const expected = cps * LUCKY_BANK_CPS_CAP_MULTIPLIER;
+    expect(getLuckyBank(price, cps)).toBe(expected);
   });
 });
 

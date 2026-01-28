@@ -20,6 +20,9 @@ export const WRINKLER_RESPAWN_TIME = 110;
 // Lucky bank multiplier: keep this many times the best item's price in reserve
 export const LUCKY_BANK_PRICE_MULTIPLIER = 3;
 
+// Lucky bank CpS cap: never exceed this many times CpS (for max Lucky + Frenzy)
+export const LUCKY_BANK_CPS_CAP_MULTIPLIER = 6000;
+
 // Golden Cookie upgrades - benefits are random/probabilistic, no PP values
 export const GOLDEN_COOKIE_UPGRADES = new Set([
   'Lucky day',

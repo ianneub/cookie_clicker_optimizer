@@ -37,7 +37,6 @@ bun run build      # Build TypeScript + generate bookmarklet
 bun run build:ts   # Build TypeScript only (outputs to dist/)
 bun test           # Run tests
 bun run test:watch # Run tests in watch mode
-bun run typecheck  # TypeScript type checking
 ```
 
 ## Build Pipeline
@@ -134,10 +133,9 @@ Tests use Bun's built-in test runner and are located in `src/__tests__/`. Run wi
 bun test              # Run once
 bun run test:watch    # Watch mode
 bun run test:coverage # With coverage report
-bun run typecheck     # Type checking (run this too!)
 ```
 
-**Important:** Always run both `bun test` AND `bun run typecheck` before committing. Tests alone don't catch type errors because Bun strips types without validating them. Type errors can indicate bugs even when tests pass.
+**Important:** Always run `bun test` before committing. Tests alone don't catch type errors because Bun strips types without validating them. Type errors can indicate bugs even when tests pass.
 
 ## Adding New Features
 
