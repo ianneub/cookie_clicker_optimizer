@@ -39,6 +39,18 @@ export const TOGGLE_UPGRADES = new Set([
   'Elder Covenant',
   'Revoke Elder Covenant',
   'Golden switch [off]',
+  'Golden switch [on]',
+  'Shimmering veil [off]',
+  'Shimmering veil [on]',
+]);
+
+// Season switcher biscuits - repeatable with escalating cost, excluded from optimization
+export const SEASON_SWITCHER_UPGRADES = new Set([
+  'Festive biscuit',
+  'Ghostly biscuit',
+  'Lovesick biscuit',
+  "Fool's biscuit",
+  'Bunny biscuit',
 ]);
 
 // Grandmapocalypse Stage 2+ upgrades - excluded to keep Golden Cookies accessible

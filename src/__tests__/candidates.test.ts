@@ -102,6 +102,18 @@ describe('isToggleUpgrade', () => {
     expect(isToggleUpgrade('Elder Pledge')).toBe(true);
     expect(isToggleUpgrade('Elder Covenant')).toBe(true);
     expect(isToggleUpgrade('Revoke Elder Covenant')).toBe(true);
+    expect(isToggleUpgrade('Golden switch [off]')).toBe(true);
+    expect(isToggleUpgrade('Golden switch [on]')).toBe(true);
+    expect(isToggleUpgrade('Shimmering veil [off]')).toBe(true);
+    expect(isToggleUpgrade('Shimmering veil [on]')).toBe(true);
+  });
+
+  it('should return true for season switcher upgrades', () => {
+    expect(isToggleUpgrade('Festive biscuit')).toBe(true);
+    expect(isToggleUpgrade('Ghostly biscuit')).toBe(true);
+    expect(isToggleUpgrade('Lovesick biscuit')).toBe(true);
+    expect(isToggleUpgrade("Fool's biscuit")).toBe(true);
+    expect(isToggleUpgrade('Bunny biscuit')).toBe(true);
   });
 
   it('should return false for non-toggle upgrades', () => {
