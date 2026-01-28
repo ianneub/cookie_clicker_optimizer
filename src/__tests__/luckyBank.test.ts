@@ -3,42 +3,30 @@
  */
 
 import { describe, it, expect } from 'bun:test';
-import { getBaseLuckyBank, getLuckyBank, canAffordWithLuckyBank } from '../core/luckyBank';
-
-describe('getBaseLuckyBank', () => {
-  it('should use CM cache value when available', () => {
-    const cmCache = { Lucky: 1000000 };
-    expect(getBaseLuckyBank(cmCache, 100)).toBe(1000000);
-  });
-
-  it('should fall back to 6000x CpS when cache unavailable', () => {
-    expect(getBaseLuckyBank(null, 1000)).toBe(6000000);
-    expect(getBaseLuckyBank(undefined, 1000)).toBe(6000000);
-  });
-
-  it('should fall back when cache Lucky is 0', () => {
-    const cmCache = { Lucky: 0 };
-    expect(getBaseLuckyBank(cmCache, 1000)).toBe(6000000);
-  });
-
-  it('should fall back when cache Lucky is negative', () => {
-    const cmCache = { Lucky: -100 };
-    expect(getBaseLuckyBank(cmCache, 1000)).toBe(6000000);
-  });
-});
+import { getLuckyBank, canAffordWithLuckyBank } from '../core/luckyBank';
+import { LUCKY_BANK_PRICE_MULTIPLIER } from '../core/constants';
 
 describe('getLuckyBank', () => {
-  it('should return scaled value based on phase', () => {
-    const result = getLuckyBank(null, 1_000_000); // 1M CpS = ~0.33 progress
-    expect(result.base).toBe(6000 * 1_000_000);
-    expect(result.phaseProgress).toBeCloseTo(0.33, 2);
-    expect(result.phaseName).toBe('Mid');
+  it('should return price times multiplier', () => {
+    expect(getLuckyBank(1000)).toBe(1000 * LUCKY_BANK_PRICE_MULTIPLIER);
+    expect(getLuckyBank(1_000_000)).toBe(1_000_000 * LUCKY_BANK_PRICE_MULTIPLIER);
   });
 
-  it('should return 0 scaled for early game', () => {
-    const result = getLuckyBank(null, 1000); // Very early
-    expect(result.scaled).toBe(0);
-    expect(result.phaseName).toBe('Early');
+  it('should return 0 for undefined price', () => {
+    expect(getLuckyBank(undefined)).toBe(0);
+  });
+
+  it('should return 0 for zero price', () => {
+    expect(getLuckyBank(0)).toBe(0);
+  });
+
+  it('should return 0 for negative price', () => {
+    expect(getLuckyBank(-100)).toBe(0);
+  });
+
+  it('should floor the result', () => {
+    // 333.33... * 3 = 1000, but ensure we floor
+    expect(getLuckyBank(333)).toBe(Math.floor(333 * LUCKY_BANK_PRICE_MULTIPLIER));
   });
 });
 

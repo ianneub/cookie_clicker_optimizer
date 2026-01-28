@@ -56,16 +56,6 @@ export function getPhaseName(phaseProgress: number): Phase {
 }
 
 /**
- * Calculate scaled Lucky bank based on game phase
- * Early game has no protection, scales up through mid game, full protection in late game
- */
-export function getScaledLuckyBank(baseLuckyBank: number, phaseProgress: number): number {
-  // Scale starts at 0% for progress < 0.25, reaches 100% at progress >= 0.75
-  const scale = smoothstep(phaseProgress, 0.25, 0.75);
-  return Math.floor(baseLuckyBank * scale);
-}
-
-/**
  * Get maximum hours willing to save for golden upgrades based on phase
  */
 export function getMaxGoldenSaveHours(phaseProgress: number): number {

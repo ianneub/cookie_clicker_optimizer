@@ -4,13 +4,13 @@
 
 import { formatNumber } from '../core/formatting';
 import { canAffordWithLuckyBank } from '../core/luckyBank';
-import type { Candidate, GoldenUpgrade, LuckyBankInfo, WrinklerStats } from '../types';
+import type { Candidate, GoldenUpgrade, WrinklerStats } from '../types';
 
 /**
  * Update the Lucky bank display in the UI
  */
 export function updateLuckyBankDisplay(
-  luckyBankInfo: LuckyBankInfo | 0,
+  luckyBank: number,
   currentCookies: number,
   autoGolden: boolean
 ): void {
@@ -18,40 +18,32 @@ export function updateLuckyBankDisplay(
   if (!bankEl) return;
 
   // Handle hide case
-  if (luckyBankInfo === 0 || !autoGolden) {
+  if (luckyBank === 0 || !autoGolden) {
     bankEl.style.display = 'none';
     return;
   }
 
   bankEl.style.display = 'flex';
-  const { scaled, base, phaseName } = luckyBankInfo;
-  const scalePercent = base > 0 ? Math.round((scaled / base) * 100) : 0;
 
   const contentEl = bankEl.querySelector('.cc-opt-bank-content');
   if (!contentEl) return;
 
-  const phaseText = `${phaseName} ${scalePercent}%`;
   let thresholdText = '';
   let diffText = '';
   let isBelow = false;
 
-  if (scaled === 0) {
-    thresholdText = '0 (disabled)';
-    diffText = '';
+  thresholdText = formatNumber(luckyBank);
+  if (currentCookies < luckyBank) {
+    diffText = `Need ${formatNumber(luckyBank - currentCookies)}`;
+    isBelow = true;
   } else {
-    thresholdText = formatNumber(scaled);
-    if (currentCookies < scaled) {
-      diffText = `Need ${formatNumber(scaled - currentCookies)}`;
-      isBelow = true;
-    } else {
-      diffText = `+${formatNumber(currentCookies - scaled)}`;
-    }
+    diffText = `+${formatNumber(currentCookies - luckyBank)}`;
   }
 
   contentEl.innerHTML = `
     <div class="cc-opt-bank-header">
       <span class="cc-opt-bank-label">Lucky Bank</span>
-      <span class="cc-opt-bank-phase">${phaseText}</span>
+      <span class="cc-opt-bank-phase">3x best</span>
     </div>
     <div class="cc-opt-bank-values">
       <span class="cc-opt-bank-threshold">${thresholdText}</span>

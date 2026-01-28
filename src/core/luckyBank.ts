@@ -2,37 +2,15 @@
  * Lucky bank threshold calculations
  */
 
-import { calculatePhaseProgress, getPhaseName, getScaledLuckyBank } from './phase';
-import type { CMCache, LuckyBankInfo } from '../types';
+import { LUCKY_BANK_PRICE_MULTIPLIER } from './constants';
 
 /**
- * Get the base Lucky bank threshold from Cookie Monster's cache (unscaled)
- * Uses 6000x CpS - the bank needed for max Lucky reward (without Frenzy)
+ * Get the Lucky bank threshold based on best item price
+ * Returns price × multiplier to keep enough reserve for purchasing
  */
-export function getBaseLuckyBank(cmCache: CMCache | null | undefined, cps: number): number {
-  if (cmCache && typeof cmCache.Lucky === 'number' && cmCache.Lucky > 0) {
-    return cmCache.Lucky;
-  }
-  return 6000 * cps;
-}
-
-/**
- * Get the phase-scaled Lucky bank threshold
- * In early game, returns 0 (no protection). Scales up through mid game.
- */
-export function getLuckyBank(
-  cmCache: CMCache | null | undefined,
-  cps: number
-): LuckyBankInfo {
-  const base = getBaseLuckyBank(cmCache, cps);
-  const phaseProgress = calculatePhaseProgress(cps);
-  const scaled = getScaledLuckyBank(base, phaseProgress);
-  return {
-    scaled,
-    base,
-    phaseProgress,
-    phaseName: getPhaseName(phaseProgress),
-  };
+export function getLuckyBank(bestItemPrice: number | undefined): number {
+  if (!bestItemPrice || bestItemPrice <= 0) return 0;
+  return Math.floor(bestItemPrice * LUCKY_BANK_PRICE_MULTIPLIER);
 }
 
 /**

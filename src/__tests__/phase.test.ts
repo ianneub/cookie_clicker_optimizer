@@ -7,7 +7,6 @@ import {
   smoothstep,
   calculatePhaseProgress,
   getPhaseName,
-  getScaledLuckyBank,
   getMaxGoldenSaveHours,
   evaluateGoldenUpgradePriority,
 } from '../core/phase';
@@ -75,25 +74,6 @@ describe('getPhaseName', () => {
   it('should return "Endgame" for progress >= 0.9', () => {
     expect(getPhaseName(0.9)).toBe('Endgame');
     expect(getPhaseName(1.0)).toBe('Endgame');
-  });
-});
-
-describe('getScaledLuckyBank', () => {
-  const baseLuckyBank = 1_000_000;
-
-  it('should return 0 for progress < 0.25', () => {
-    expect(getScaledLuckyBank(baseLuckyBank, 0)).toBe(0);
-    expect(getScaledLuckyBank(baseLuckyBank, 0.24)).toBe(0);
-  });
-
-  it('should return full value for progress >= 0.75', () => {
-    expect(getScaledLuckyBank(baseLuckyBank, 0.75)).toBe(baseLuckyBank);
-    expect(getScaledLuckyBank(baseLuckyBank, 1.0)).toBe(baseLuckyBank);
-  });
-
-  it('should return ~50% at progress 0.5', () => {
-    const scaled = getScaledLuckyBank(baseLuckyBank, 0.5);
-    expect(scaled).toBeCloseTo(baseLuckyBank * 0.5, -4);
   });
 });
 

@@ -23,13 +23,6 @@ export interface GoldenUpgrade {
   gameUpgrade: { buy: () => void };
 }
 
-export interface LuckyBankInfo {
-  scaled: number;
-  base: number;
-  phaseProgress: number;
-  phaseName: Phase;
-}
-
 export interface GoldenUpgradeEvaluation {
   shouldPrioritize: boolean;
   reason: string;

@@ -6,6 +6,7 @@ import styles from './ui/styles.css?inline';
 import { CM_URL, MAX_WAIT_TIME, POLL_INTERVAL, REFRESH_INTERVAL } from './core/constants';
 import { logAction } from './core/formatting';
 import { getLuckyBank, canAffordWithLuckyBank } from './core/luckyBank';
+import { calculatePhaseProgress } from './core/phase';
 import { filterAndSortCandidates } from './core/candidates';
 import { shouldPopForPurchase } from './core/wrinklers';
 import {
@@ -124,26 +125,8 @@ function findBestPurchase(state: OptimizerState): void {
   state.lastBuildingCount = getTotalBuildings(Game.Objects);
   state.lastUpgradeCount = Game.UpgradesOwned;
 
-  // Calculate Lucky bank threshold when Gold: ON
-  let luckyBankInfo = null;
-  let luckyBankScaled = 0;
-  if (state.autoGolden) {
-    luckyBankInfo = getLuckyBank(CookieMonsterData.Cache, getUnbuffedCps());
-    luckyBankScaled = luckyBankInfo.scaled;
-    updateLuckyBankDisplay(luckyBankInfo, Game.cookies, state.autoGolden);
-  } else {
-    updateLuckyBankDisplay(0, 0, state.autoGolden);
-  }
-
-  // Find Golden Cookie upgrades when Gold: ON
-  const goldenUpgrades = state.autoGolden
-    ? findGoldenUpgradesInStore(
-        Game.UpgradesInStore,
-        Game.cookies,
-        getUnbuffedCps(),
-        luckyBankInfo?.phaseProgress ?? 0
-      )
-    : [];
+  // Get phase progress for golden upgrade evaluation
+  const phaseProgress = calculatePhaseProgress(getUnbuffedCps());
 
   // Get wrinkler stats
   const wrinklerStats = getWrinklerStats({
@@ -174,33 +157,54 @@ function findBestPurchase(state: OptimizerState): void {
 
       if (building && gameBuilding && !gameBuilding.locked && building.pp !== undefined) {
         const price = gameBuilding.getSumPrice(amount);
-        const isAffordable = state.autoGolden
-          ? canAffordWithLuckyBank(Game.cookies, price, luckyBankScaled)
-          : Game.cookies >= price;
         candidates.push({
           name: name + (amount > 1 ? ' x' + amount : ''),
           type: 'Building',
           pp: building.pp,
           price: price,
-          affordable: isAffordable,
+          affordable: false, // Will be set after lucky bank calculation
         });
       }
     }
   }
 
-  // Collect upgrade PP values
+  // Collect upgrade PP values (without lucky bank for now)
   const upgradeCandidates = collectUpgradeCandidates(
     CookieMonsterData.Upgrades,
     Game.Upgrades,
     Game.UpgradesInStore,
     Game.cookies,
-    luckyBankScaled,
-    state.autoGolden
+    0, // No lucky bank yet
+    false // Don't apply lucky bank yet
   );
   candidates.push(...upgradeCandidates);
 
   // Filter and sort candidates
   const validCandidates = filterAndSortCandidates(candidates);
+
+  // Calculate Lucky bank based on best item price
+  const bestPrice = validCandidates[0]?.price;
+  const luckyBankScaled = state.autoGolden ? getLuckyBank(bestPrice) : 0;
+
+  // Update affordability based on lucky bank
+  for (const c of validCandidates) {
+    c.affordable = state.autoGolden
+      ? canAffordWithLuckyBank(Game.cookies, c.price, luckyBankScaled)
+      : Game.cookies >= c.price;
+  }
+
+  // Update lucky bank display
+  updateLuckyBankDisplay(luckyBankScaled, Game.cookies, state.autoGolden);
+
+  // Find Golden Cookie upgrades when Gold: ON
+  const goldenUpgrades = state.autoGolden
+    ? findGoldenUpgradesInStore(
+        Game.UpgradesInStore,
+        Game.cookies,
+        getUnbuffedCps(),
+        phaseProgress
+      )
+    : [];
 
   if (validCandidates.length === 0) {
     updateDisplay(

@@ -17,6 +17,9 @@ export const PHASE_THRESHOLDS = {
 // Average time for a wrinkler to respawn (seconds)
 export const WRINKLER_RESPAWN_TIME = 110;
 
+// Lucky bank multiplier: keep this many times the best item's price in reserve
+export const LUCKY_BANK_PRICE_MULTIPLIER = 3;
+
 // Golden Cookie upgrades - benefits are random/probabilistic, no PP values
 export const GOLDEN_COOKIE_UPGRADES = new Set([
   'Lucky day',
