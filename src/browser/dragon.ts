@@ -19,10 +19,10 @@ export interface DragonGameContext {
 
 /**
  * Get current dragon state from Game
- * Returns null if dragon is not unlocked (level < 5)
+ * Returns null if dragon is not available (dragonLevel undefined)
  */
 export function getDragonState(game: DragonGameContext | null): DragonState | null {
-  if (!game || game.dragonLevel < DRAGON_LEVEL_AURAS) {
+  if (!game || game.dragonLevel === undefined) {
     return null;
   }
 

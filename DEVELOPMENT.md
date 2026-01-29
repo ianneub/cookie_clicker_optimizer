@@ -125,6 +125,16 @@ Game.shimmerTypes.golden.time = 0;       // Spawn golden cookie
 Game.elderWrath = 3;                     // Max grandmapocalypse (enables wrinklers)
 ```
 
+### Heavenly Chips & Prestige
+
+```javascript
+Game.heavenlyChips = 1000000;            // Set heavenly chips
+Game.prestige = 1000000;                 // Set prestige level
+// Sync chips after changing prestige:
+Game.heavenlyChips = Game.prestige - Game.heavenlyChipsSpent;
+Game.Ascend(1);                          // Force ascension
+```
+
 ## Testing
 
 Tests use Bun's built-in test runner and are located in `src/__tests__/`. Run with:

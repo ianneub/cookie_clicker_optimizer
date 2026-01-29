@@ -62,6 +62,18 @@ export const DRAGON_LEVEL_AURAS = 5;
 /** Dragon level required for dual auras */
 export const DRAGON_LEVEL_DUAL = 21;
 
+/**
+ * Check if an aura is unlocked based on dragon level
+ * Aura N is unlocked at dragon level (N + 4), e.g.:
+ * - Breath of Milk (1) unlocks at level 5
+ * - Elder Battalion (3) unlocks at level 7
+ */
+export function isAuraUnlocked(auraName: DragonAura, dragonLevel: number): boolean {
+  const auraIndex = AURA_INDICES[auraName] ?? 0;
+  if (auraIndex === 0) return true; // "No aura" is always available
+  return dragonLevel >= auraIndex + 4;
+}
+
 /** Cooldown between non-Frenzy aura switches (ms) */
 export const AURA_SWITCH_COOLDOWN = 60000;
 
@@ -133,8 +145,17 @@ export function shouldSwitchAuras(
   recommended: DragonConfig,
   lastSwitchTime: number,
   hasActiveFrenzy: boolean,
-  highestTierBuildingCount: number
+  highestTierBuildingCount: number,
+  hasAura: (name: string) => boolean
 ): SwitchDecision {
+  // Check aura availability
+  if (!hasAura(recommended.aura1)) {
+    return { shouldSwitch: false, reason: `${recommended.aura1} not unlocked` };
+  }
+  if (!hasAura(recommended.aura2)) {
+    return { shouldSwitch: false, reason: `${recommended.aura2} not unlocked` };
+  }
+
   // Already optimal
   if (current.aura1 === recommended.aura1 && current.aura2 === recommended.aura2) {
     return { shouldSwitch: false, reason: 'Already optimal' };

@@ -39,6 +39,12 @@ export interface Buff {
   multCpS?: number;
 }
 
+export interface DragonLevel {
+  name: string;
+  cost: () => boolean;
+  costStr: () => string;
+}
+
 export interface Game {
   cookies: number;
   cookiesPs: number;
@@ -53,13 +59,18 @@ export interface Game {
   mods: Record<string, unknown>;
   buffs: Record<string, Buff>;
   dragonLevel: number;
+  dragonLevels: DragonLevel[];
   dragonAura: number;
   dragonAura2: number;
+  UpgradeDragon: () => void;
+  recalculateGains: number;
   Has: (name: string) => boolean;
   hasAura: (name: string) => boolean;
   SelectDragonAura: (slot: number, aura: number) => void;
   SetDragonAura: (aura: number, slot: number) => void;
   LoadMod: (url: string) => void;
+  ToggleSpecialMenu?: (on: number) => void;
+  specialTab: string;
   getWrinklersMax?: () => number;
   ClosePrompt?: () => void;
   ConfirmPrompt?: () => void;

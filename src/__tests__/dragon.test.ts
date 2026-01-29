@@ -96,44 +96,59 @@ describe('shouldSwitchAuras', () => {
   const current = { aura1: 'Elder Battalion' as const, aura2: 'Radiant Appetite' as const };
   const recommended = { aura1: 'Breath of Milk' as const, aura2: 'Radiant Appetite' as const };
   const frenzyAuras = { aura1: "Dragon's Fortune" as const, aura2: 'Epoch Manipulator' as const };
+  const hasAllAuras = () => true;
 
   it('should not switch if already optimal', () => {
-    const result = shouldSwitchAuras(current, current, 0, false, 10);
+    const result = shouldSwitchAuras(current, current, 0, false, 10, hasAllAuras);
     expect(result.shouldSwitch).toBe(false);
     expect(result.reason).toBe('Already optimal');
   });
 
   it('should not switch if building count is too low', () => {
-    const result = shouldSwitchAuras(current, recommended, 0, false, 1);
+    const result = shouldSwitchAuras(current, recommended, 0, false, 1, hasAllAuras);
     expect(result.shouldSwitch).toBe(false);
     expect(result.reason).toContain('top buildings');
   });
 
   it('should switch for phase transition after cooldown', () => {
     const oldTime = Date.now() - AURA_SWITCH_COOLDOWN - 1000;
-    const result = shouldSwitchAuras(current, recommended, oldTime, false, 10);
+    const result = shouldSwitchAuras(current, recommended, oldTime, false, 10, hasAllAuras);
     expect(result.shouldSwitch).toBe(true);
     expect(result.reason).toBe('Phase transition');
   });
 
   it('should not switch during cooldown', () => {
     const recentTime = Date.now() - 30000; // 30 seconds ago
-    const result = shouldSwitchAuras(current, recommended, recentTime, false, 10);
+    const result = shouldSwitchAuras(current, recommended, recentTime, false, 10, hasAllAuras);
     expect(result.shouldSwitch).toBe(false);
     expect(result.reason).toContain('Cooldown');
   });
 
   it('should bypass cooldown for Frenzy', () => {
     const recentTime = Date.now() - 5000; // 5 seconds ago
-    const result = shouldSwitchAuras(current, frenzyAuras, recentTime, true, 10);
+    const result = shouldSwitchAuras(current, frenzyAuras, recentTime, true, 10, hasAllAuras);
     expect(result.shouldSwitch).toBe(true);
     expect(result.reason).toBe('Frenzy active');
   });
 
   it('should still check building count during Frenzy', () => {
-    const result = shouldSwitchAuras(current, frenzyAuras, 0, true, 1);
+    const result = shouldSwitchAuras(current, frenzyAuras, 0, true, 1, hasAllAuras);
     expect(result.shouldSwitch).toBe(false);
     expect(result.reason).toContain('top buildings');
+  });
+
+  it('should not switch if primary aura not unlocked', () => {
+    const hasAura = (name: string) => name !== 'Breath of Milk';
+    const result = shouldSwitchAuras(current, recommended, 0, false, 10, hasAura);
+    expect(result.shouldSwitch).toBe(false);
+    expect(result.reason).toContain('Breath of Milk not unlocked');
+  });
+
+  it('should not switch if secondary aura not unlocked', () => {
+    const hasAura = (name: string) => name !== 'Radiant Appetite';
+    const result = shouldSwitchAuras(current, recommended, 0, false, 10, hasAura);
+    expect(result.shouldSwitch).toBe(false);
+    expect(result.reason).toContain('Radiant Appetite not unlocked');
   });
 });
 

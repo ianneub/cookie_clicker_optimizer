@@ -13,7 +13,9 @@ import {
   getRecommendedAuras,
   shouldSwitchAuras,
   countKittenUpgrades,
+  isAuraUnlocked,
 } from './core/dragon';
+import type { DragonAura } from './types';
 import {
   getTotalBuildings,
   executePurchaseItem,
@@ -49,6 +51,16 @@ function getUnbuffedCps(): number {
     return Game.unbuffedCps;
   }
   return Game.cookiesPs;
+}
+
+/**
+ * Ensure the dragon menu is open for dragon operations
+ */
+function ensureDragonMenuOpen(): void {
+  if (Game.specialTab !== 'dragon') {
+    Game.specialTab = 'dragon';
+    Game.ToggleSpecialMenu?.(1);
+  }
 }
 
 /**
@@ -269,6 +281,22 @@ function findBestPurchase(state: OptimizerState): void {
     hasAura: Game.hasAura.bind(Game),
   };
 
+  // Auto-train dragon (runs at all levels, including 0-4 before auras unlock)
+  if (state.autoDragon) {
+    const maxLevel = Game.dragonLevels.length - 1;
+    if (Game.dragonLevel < maxLevel && Game.dragonLevels[Game.dragonLevel].cost()) {
+      // Open dragon menu before training - UpgradeDragon() expects it open
+      ensureDragonMenuOpen();
+      const fromLevel = Game.dragonLevel;
+      Game.UpgradeDragon();
+      logAction('DRAGON_TRAIN', {
+        fromLevel,
+        toLevel: Game.dragonLevel,
+        name: Game.dragonLevels[Game.dragonLevel]?.name ?? 'Max',
+      });
+    }
+  }
+
   const dragonState = getDragonState(dragonGameContext);
   let recommendedDragonConfig = null;
 
@@ -297,7 +325,8 @@ function findBestPurchase(state: OptimizerState): void {
         recommendedDragonConfig,
         state.lastDragonSwitch,
         isFrenzyActive,
-        highestTierCount
+        highestTierCount,
+        (auraName) => isAuraUnlocked(auraName as DragonAura, Game.dragonLevel)
       );
 
       if (switchDecision.shouldSwitch) {
