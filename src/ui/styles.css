@@ -64,6 +64,30 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+.cc-opt-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#cc-opt-github {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cc-bg-hover);
+  color: var(--cc-text-dim);
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+#cc-opt-github:hover {
+  background: var(--cc-border-light);
+  color: var(--cc-cream);
+  transform: scale(1.05);
+}
+
 #cc-opt-close {
   width: 24px;
   height: 24px;
