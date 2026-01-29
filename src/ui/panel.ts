@@ -30,6 +30,7 @@ const PANEL_HTML = `
   <button id="cc-opt-golden" class="cc-opt-toggle" data-label="Gold">OFF</button>
   <button id="cc-opt-wrath" class="cc-opt-toggle" data-label="Wrath" style="display: none;">OFF</button>
   <button id="cc-opt-wrinkler" class="cc-opt-toggle" data-label="Wrnk" style="display: none;">OFF</button>
+  <button id="cc-opt-dragon-btn" class="cc-opt-toggle" data-label="Drgn" style="display: none;">OFF</button>
 </div>
 <div id="cc-opt-lucky-bank" style="display: none;">
   <div class="cc-opt-bank-icon">&#9733;</div>
@@ -48,6 +49,23 @@ const PANEL_HTML = `
     </div>
   </div>
   <div id="cc-opt-wrinkler-action" style="display: none;"></div>
+</div>
+<div id="cc-opt-dragon-section" style="display: none;">
+  <div class="cc-opt-dragon-icon">&#128009;</div>
+  <div class="cc-opt-dragon-content">
+    <div class="cc-opt-dragon-row">
+      <span class="cc-opt-dragon-label">Dragon</span>
+      <span id="cc-opt-dragon-level">Lvl 0</span>
+    </div>
+    <div class="cc-opt-dragon-row">
+      <span>Aura</span>
+      <span id="cc-opt-dragon-aura">None</span>
+    </div>
+    <div id="cc-opt-dragon-recommend" class="cc-opt-dragon-row" style="display: none;">
+      <span>Switch to</span>
+      <span id="cc-opt-dragon-recommend-aura"></span>
+    </div>
+  </div>
 </div>
 <div id="cc-opt-content">Loading...</div>
 `;
@@ -136,6 +154,18 @@ export function getDisplay(
     wrinklerBtn.addEventListener('click', wrinklerHandler);
   }
 
+  // Dragon toggle button
+  const dragonBtn = document.getElementById('cc-opt-dragon-btn');
+  if (dragonBtn) {
+    updateToggleButton(dragonBtn, state.autoDragon);
+    const dragonHandler = (e: MouseEvent) => {
+      e.stopPropagation();
+      onToggle('autoDragon');
+    };
+    buttonHandlers.set('dragon', dragonHandler);
+    dragonBtn.addEventListener('click', dragonHandler);
+  }
+
   // Make draggable
   const header = document.getElementById('cc-opt-header');
   if (header) {
@@ -202,6 +232,7 @@ export function cleanupButtonHandlers(): void {
     golden: 'cc-opt-golden',
     wrath: 'cc-opt-wrath',
     wrinkler: 'cc-opt-wrinkler',
+    dragon: 'cc-opt-dragon-btn',
   };
 
   for (const [key, id] of Object.entries(buttonIds)) {

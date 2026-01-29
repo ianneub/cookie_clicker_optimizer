@@ -112,6 +112,7 @@ Visit the **[Installation Page](https://ianneub.github.io/cookie_clicker_optimiz
 | **Gold: OFF/ON** | Toggle golden cookie auto-clicking |
 | **Wrath: OFF/ON** | Include wrath cookies (visible when Gold ON) |
 | **Wrnk: OFF/ON** | Auto-pop wrinklers when beneficial (visible during Grandmapocalypse) |
+| **Drgn: OFF/ON** | Auto-switch dragon auras (visible when dragon level 5+) |
 | **Drag header** | Move panel anywhere |
 | **Click X** | Close panel |
 | **Click bookmarklet again** | Toggle off |
@@ -169,6 +170,27 @@ The optimizer **blocks Stage 2+ upgrades** to prevent further progression:
 - Elder Pact
 
 These would increase Wrath Cookie rate to 66-100%, disrupting golden cookie combos. If you want full Grandmapocalypse, purchase these manually.
+
+### Dragon Aura Management
+
+When **Drgn: ON** (visible after dragon level 5):
+
+- Displays current aura(s) and dragon level
+- Shows recommended auras based on game phase
+- Auto-switches during Frenzy combos (Dragon's Fortune + Epoch Manipulator)
+- Respects 60-second cooldown between non-Frenzy switches (each switch costs one building)
+- Won't switch if highest-tier building count is below 2
+
+**Recommended Auras by Phase:**
+
+| Phase | Primary Aura | Secondary Aura |
+| ----- | ------------ | -------------- |
+| Early/Mid | Elder Battalion | Radiant Appetite |
+| Late (10+ kittens) | Breath of Milk | Radiant Appetite |
+| Endgame (15k+ buildings) | Elder Battalion | Breath of Milk |
+| During Frenzy | Dragon's Fortune | Epoch Manipulator |
+
+Dual auras require dragon level 21+.
 
 ### Golden Switch Exclusion
 

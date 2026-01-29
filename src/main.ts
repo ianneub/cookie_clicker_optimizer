@@ -10,6 +10,11 @@ import { calculatePhaseProgress } from './core/phase';
 import { filterAndSortCandidates } from './core/candidates';
 import { shouldPopForPurchase } from './core/wrinklers';
 import {
+  getRecommendedAuras,
+  shouldSwitchAuras,
+  countKittenUpgrades,
+} from './core/dragon';
+import {
   getTotalBuildings,
   executePurchaseItem,
   isCMDataReady,
@@ -17,14 +22,22 @@ import {
 import { collectUpgradeCandidates, findGoldenUpgradesInStore } from './browser/purchases';
 import { clickShimmers } from './browser/cookies';
 import { getWrinklerStats, popNormalWrinklers } from './browser/wrinklers';
+import {
+  getDragonState,
+  switchAuras,
+  hasActiveFrenzy,
+  getHighestTierBuildingCount,
+  getTotalBuildingCount,
+} from './browser/dragon';
 import { getDisplay, cleanupPanel } from './ui/panel';
 import {
   updateAutoButton,
   updateGoldenButton,
   updateWrathButton,
   updateWrinklerButton,
+  updateDragonButton,
 } from './ui/buttons';
-import { updateLuckyBankDisplay, updateWrinklerDisplay, updateDisplay } from './ui/display';
+import { updateLuckyBankDisplay, updateWrinklerDisplay, updateDisplay, updateDragonDisplay } from './ui/display';
 import { getState } from './state';
 import type { Candidate, OptimizerState } from './types';
 
@@ -239,6 +252,64 @@ function findBestPurchase(state: OptimizerState): void {
   }
 
   updateWrinklerDisplay(wrinklerStats, wrinklerActionText);
+
+  // Dragon aura automation
+  const dragonGameContext = {
+    dragonLevel: Game.dragonLevel,
+    dragonAura: Game.dragonAura,
+    dragonAura2: Game.dragonAura2,
+    SetDragonAura: Game.SetDragonAura.bind(Game),
+    ConfirmPrompt: Game.ConfirmPrompt?.bind(Game) ?? (() => {}),
+    buffs: Game.buffs,
+    Objects: Game.Objects,
+    Has: Game.Has.bind(Game),
+    hasAura: Game.hasAura.bind(Game),
+  };
+
+  const dragonState = getDragonState(dragonGameContext);
+  let recommendedDragonConfig = null;
+
+  if (dragonState) {
+    const isFrenzyActive = hasActiveFrenzy(dragonGameContext);
+    const kittenCount = countKittenUpgrades(Game.Has.bind(Game));
+    const totalBuildings = getTotalBuildingCount(dragonGameContext);
+
+    recommendedDragonConfig = getRecommendedAuras({
+      phaseProgress,
+      kittenCount,
+      totalBuildings,
+      hasActiveFrenzy: isFrenzyActive,
+    });
+
+    // Auto-switch auras if enabled
+    if (state.autoDragon) {
+      const currentConfig = {
+        aura1: dragonState.currentAura1,
+        aura2: dragonState.currentAura2,
+      };
+      const highestTierCount = getHighestTierBuildingCount(dragonGameContext);
+
+      const switchDecision = shouldSwitchAuras(
+        currentConfig,
+        recommendedDragonConfig,
+        state.lastDragonSwitch,
+        isFrenzyActive,
+        highestTierCount
+      );
+
+      if (switchDecision.shouldSwitch) {
+        switchAuras(dragonGameContext, recommendedDragonConfig);
+        state.lastDragonSwitch = Date.now();
+        logAction('DRAGON_SWITCH', {
+          from: `${currentConfig.aura1} + ${currentConfig.aura2}`,
+          to: `${recommendedDragonConfig.aura1} + ${recommendedDragonConfig.aura2}`,
+          reason: switchDecision.reason,
+        });
+      }
+    }
+  }
+
+  updateDragonDisplay(dragonState, recommendedDragonConfig);
   updateDisplay(best, bestAffordable, goldenUpgrades, luckyBankScaled, Game.cookies);
 
   // Auto-purchase logic
@@ -329,6 +400,9 @@ function handleToggle(state: OptimizerState, key: keyof OptimizerState): void {
   } else if (key === 'autoWrinklers') {
     state.autoWrinklers = !state.autoWrinklers;
     updateWrinklerButton(state.autoWrinklers);
+  } else if (key === 'autoDragon') {
+    state.autoDragon = !state.autoDragon;
+    updateDragonButton(state.autoDragon);
   }
 }
 

@@ -33,6 +33,12 @@ export interface Wrinkler {
   hp: number;
 }
 
+export interface Buff {
+  name: string;
+  time: number;
+  multCpS?: number;
+}
+
 export interface Game {
   cookies: number;
   cookiesPs: number;
@@ -45,10 +51,18 @@ export interface Game {
   wrinklers: Wrinkler[];
   shimmers: Shimmer[];
   mods: Record<string, unknown>;
+  buffs: Record<string, Buff>;
+  dragonLevel: number;
+  dragonAura: number;
+  dragonAura2: number;
   Has: (name: string) => boolean;
+  hasAura: (name: string) => boolean;
+  SelectDragonAura: (slot: number, aura: number) => void;
+  SetDragonAura: (aura: number, slot: number) => void;
   LoadMod: (url: string) => void;
   getWrinklersMax?: () => number;
   ClosePrompt?: () => void;
+  ConfirmPrompt?: () => void;
 }
 
 declare global {

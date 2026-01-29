@@ -42,6 +42,47 @@ export interface PopDecision {
   reason: string;
 }
 
+export type DragonAura =
+  | 'No aura'
+  | 'Breath of Milk'
+  | 'Dragon Cursor'
+  | 'Elder Battalion'
+  | 'Reaper of Fields'
+  | 'Earth Shatterer'
+  | 'Master of the Armory'
+  | 'Fierce Hoarder'
+  | 'Dragon God'
+  | 'Arcane Aura'
+  | 'Dragonflight'
+  | 'Ancestral Metamorphosis'
+  | 'Unholy Dominion'
+  | 'Epoch Manipulator'
+  | 'Mind Over Matter'
+  | 'Radiant Appetite'
+  | "Dragon's Fortune"
+  | "Dragon's Curve"
+  | 'Reality Bending'
+  | 'Dragon Orbs'
+  | 'Supreme Intellect'
+  | 'Dragon Guts';
+
+export interface DragonConfig {
+  aura1: DragonAura;
+  aura2: DragonAura;
+}
+
+export interface DragonState {
+  level: number;
+  currentAura1: DragonAura;
+  currentAura2: DragonAura;
+  hasDualAuras: boolean;
+}
+
+export interface SwitchDecision {
+  shouldSwitch: boolean;
+  reason: string;
+}
+
 export interface OptimizerState {
   lastBuildingCount: number;
   lastUpgradeCount: number;
@@ -52,6 +93,8 @@ export interface OptimizerState {
   autoGolden: boolean;
   autoWrath: boolean;
   autoWrinklers: boolean;
+  autoDragon: boolean;
+  lastDragonSwitch: number;
 }
 
 // Re-export game types

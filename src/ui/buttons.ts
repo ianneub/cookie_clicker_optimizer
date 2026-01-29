@@ -37,3 +37,10 @@ export function updateWrathButton(isActive: boolean): void {
 export function updateWrinklerButton(isActive: boolean): void {
   updateToggleButton(document.getElementById('cc-opt-wrinkler'), isActive);
 }
+
+/**
+ * Update the dragon button display
+ */
+export function updateDragonButton(isActive: boolean): void {
+  updateToggleButton(document.getElementById('cc-opt-dragon-btn'), isActive);
+}

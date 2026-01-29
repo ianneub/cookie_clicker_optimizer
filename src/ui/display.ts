@@ -4,7 +4,7 @@
 
 import { formatNumber } from '../core/formatting';
 import { canAffordWithLuckyBank } from '../core/luckyBank';
-import type { Candidate, GoldenUpgrade, WrinklerStats } from '../types';
+import type { Candidate, GoldenUpgrade, WrinklerStats, DragonState, DragonConfig } from '../types';
 
 /**
  * Update the Lucky bank display in the UI
@@ -183,4 +183,78 @@ export function updateDisplay(
   }
 
   content.innerHTML = html;
+}
+
+/**
+ * Update the dragon display section
+ */
+export function updateDragonDisplay(
+  state: DragonState | null,
+  recommended: DragonConfig | null
+): void {
+  const sectionEl = document.getElementById('cc-opt-dragon-section');
+  const levelEl = document.getElementById('cc-opt-dragon-level');
+  const auraEl = document.getElementById('cc-opt-dragon-aura');
+  const recommendEl = document.getElementById('cc-opt-dragon-recommend');
+  const recommendAuraEl = document.getElementById('cc-opt-dragon-recommend-aura');
+  const dragonBtn = document.getElementById('cc-opt-dragon-btn');
+
+  if (!sectionEl) return;
+
+  // Hide section and button if dragon not unlocked
+  if (!state) {
+    sectionEl.style.display = 'none';
+    if (dragonBtn) dragonBtn.style.display = 'none';
+    return;
+  }
+
+  // Show section and button
+  sectionEl.style.display = 'flex';
+  if (dragonBtn) dragonBtn.style.display = 'flex';
+
+  // Update level
+  if (levelEl) levelEl.textContent = `Lvl ${state.level}`;
+
+  // Update current auras
+  if (auraEl) {
+    if (state.hasDualAuras && state.currentAura2 !== 'No aura') {
+      auraEl.textContent = `${shortenAuraName(state.currentAura1)} + ${shortenAuraName(state.currentAura2)}`;
+    } else {
+      auraEl.textContent = state.currentAura1;
+    }
+  }
+
+  // Show recommendation if different from current
+  if (recommendEl && recommendAuraEl && recommended) {
+    const needsSwitch =
+      state.currentAura1 !== recommended.aura1 ||
+      (state.hasDualAuras && state.currentAura2 !== recommended.aura2);
+
+    if (needsSwitch) {
+      recommendEl.style.display = 'flex';
+      if (state.hasDualAuras) {
+        recommendAuraEl.textContent = `${shortenAuraName(recommended.aura1)} + ${shortenAuraName(recommended.aura2)}`;
+      } else {
+        recommendAuraEl.textContent = recommended.aura1;
+      }
+    } else {
+      recommendEl.style.display = 'none';
+    }
+  }
+}
+
+/**
+ * Shorten aura names for display
+ */
+function shortenAuraName(name: string): string {
+  const shortNames: Record<string, string> = {
+    'Elder Battalion': 'Battalion',
+    'Radiant Appetite': 'Radiant',
+    'Breath of Milk': 'Milk',
+    "Dragon's Fortune": 'Fortune',
+    'Epoch Manipulator': 'Epoch',
+    'Dragon Guts': 'Guts',
+    'Reality Bending': 'Reality',
+  };
+  return shortNames[name] || name;
 }

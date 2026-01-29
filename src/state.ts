@@ -38,5 +38,7 @@ export function createDefaultState(): OptimizerState {
     autoGolden: false,
     autoWrath: false,
     autoWrinklers: false,
+    autoDragon: false,
+    lastDragonSwitch: 0,
   };
 }
