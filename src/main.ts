@@ -202,11 +202,14 @@ function findBestPurchase(state: OptimizerState): void {
   const bestPrice = validCandidates[0]?.price;
   const luckyBankScaled = state.autoGolden ? getLuckyBank(bestPrice, unbuffedCps) : 0;
 
-  // Update affordability based on lucky bank
+  // Update affordability based on per-item lucky bank
   for (const c of validCandidates) {
-    c.affordable = state.autoGolden
-      ? canAffordWithLuckyBank(Game.cookies, c.price, luckyBankScaled)
-      : Game.cookies >= c.price;
+    if (state.autoGolden) {
+      const itemLuckyBank = getLuckyBank(c.price, unbuffedCps);
+      c.affordable = canAffordWithLuckyBank(Game.cookies, c.price, itemLuckyBank);
+    } else {
+      c.affordable = Game.cookies >= c.price;
+    }
   }
 
   // Update lucky bank display
@@ -314,9 +317,11 @@ function findBestPurchase(state: OptimizerState): void {
 
   // Auto-purchase logic
   if (state.autoPurchase) {
-    const affordablePrioritizedGolden = goldenUpgrades.find(
-      (u) => u.prioritized && canAffordWithLuckyBank(Game.cookies, u.price, luckyBankScaled)
-    );
+    const affordablePrioritizedGolden = goldenUpgrades.find((u) => {
+      if (!u.prioritized) return false;
+      const itemLuckyBank = getLuckyBank(u.price, unbuffedCps);
+      return canAffordWithLuckyBank(Game.cookies, u.price, itemLuckyBank);
+    });
     const hasPendingPrioritizedGolden = goldenUpgrades.some((u) => u.prioritized);
 
     if (state.autoGolden && affordablePrioritizedGolden) {
@@ -334,12 +339,14 @@ function findBestPurchase(state: OptimizerState): void {
       // Batch purchase: buy multiple items per tick while affordable
       const MAX_BATCH = 10;
       for (let i = 0; i < MAX_BATCH; i++) {
-        // Find best affordable item from current candidates
-        const affordable = validCandidates.find((c) =>
-          state.autoGolden
-            ? canAffordWithLuckyBank(Game.cookies, c.price, luckyBankScaled)
-            : Game.cookies >= c.price
-        );
+        // Find best affordable item from current candidates using per-item lucky bank
+        const affordable = validCandidates.find((c) => {
+          if (state.autoGolden) {
+            const itemLuckyBank = getLuckyBank(c.price, unbuffedCps);
+            return canAffordWithLuckyBank(Game.cookies, c.price, itemLuckyBank);
+          }
+          return Game.cookies >= c.price;
+        });
         if (!affordable) break;
 
         const cookiesBefore = Game.cookies;
