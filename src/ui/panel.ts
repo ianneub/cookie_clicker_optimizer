@@ -36,6 +36,19 @@ const PANEL_HTML = `
   <div class="cc-opt-bank-icon">&#9733;</div>
   <div class="cc-opt-bank-content"></div>
 </div>
+<div id="cc-opt-ascension" style="display: none;">
+  <div class="cc-opt-ascension-icon">&#11014;</div>
+  <div class="cc-opt-ascension-content">
+    <div class="cc-opt-ascension-row">
+      <span class="cc-opt-ascension-label">Prestige</span>
+      <span id="cc-opt-ascension-current">0</span>
+    </div>
+    <div class="cc-opt-ascension-row">
+      <span id="cc-opt-ascension-label">Gain</span>
+      <span id="cc-opt-ascension-pending">+0 (0%)</span>
+    </div>
+  </div>
+</div>
 <div id="cc-opt-wrinklers" style="display: none;">
   <div class="cc-opt-wrinkler-icon">&#128027;</div>
   <div class="cc-opt-wrinkler-content">

@@ -39,7 +39,8 @@ import {
   updateWrinklerButton,
   updateDragonButton,
 } from './ui/buttons';
-import { updateLuckyBankDisplay, updateWrinklerDisplay, updateDisplay, updateDragonDisplay } from './ui/display';
+import { updateLuckyBankDisplay, updateWrinklerDisplay, updateDisplay, updateDragonDisplay, updateAscensionDisplay } from './ui/display';
+import { getAscensionStats } from './browser/ascension';
 import { getState } from './state';
 import type { Candidate, OptimizerState } from './types';
 
@@ -267,6 +268,17 @@ function findBestPurchase(state: OptimizerState): void {
   }
 
   updateWrinklerDisplay(wrinklerStats, wrinklerActionText);
+
+  // Ascension stats display
+  const ascensionStats = getAscensionStats({
+    prestige: Game.prestige,
+    cookiesReset: Game.cookiesReset,
+    cookiesEarned: Game.cookiesEarned,
+    heavenlyChips: Game.heavenlyChips,
+    HowMuchPrestige: Game.HowMuchPrestige.bind(Game),
+    Upgrades: Game.Upgrades,
+  });
+  updateAscensionDisplay(ascensionStats);
 
   // Dragon aura automation
   const dragonGameContext = {

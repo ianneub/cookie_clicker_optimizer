@@ -4,7 +4,54 @@
 
 import { formatNumber } from '../core/formatting';
 import { canAffordWithLuckyBank } from '../core/luckyBank';
-import type { Candidate, GoldenUpgrade, WrinklerStats, DragonState, DragonConfig } from '../types';
+import type { Candidate, GoldenUpgrade, WrinklerStats, DragonState, DragonConfig, AscensionStats } from '../types';
+
+/**
+ * Update the ascension display section
+ */
+export function updateAscensionDisplay(stats: AscensionStats | null): void {
+  const sectionEl = document.getElementById('cc-opt-ascension');
+  const currentEl = document.getElementById('cc-opt-ascension-current');
+  const labelEl = document.getElementById('cc-opt-ascension-label');
+  const pendingEl = document.getElementById('cc-opt-ascension-pending');
+
+  if (!sectionEl) return;
+
+  // Hide section if no stats (player hasn't ascended)
+  if (!stats) {
+    sectionEl.style.display = 'none';
+    return;
+  }
+
+  sectionEl.style.display = 'flex';
+
+  // Update current prestige
+  if (currentEl) {
+    currentEl.textContent = formatNumber(stats.currentPrestige);
+  }
+
+  // Update label and pending with % increase
+  if (pendingEl) {
+    const percentText =
+      stats.percentIncrease === Infinity ? '∞' : `${stats.percentIncrease.toFixed(0)}%`;
+    pendingEl.textContent = `+${formatNumber(stats.pendingPrestige)} (${percentText})`;
+
+    // Green highlight and label change when good to ascend
+    if (stats.isGoodToAscend) {
+      pendingEl.classList.add('cc-opt-ascension-good');
+      if (labelEl) {
+        labelEl.textContent = 'Ascend!';
+        labelEl.classList.add('cc-opt-ascension-good');
+      }
+    } else {
+      pendingEl.classList.remove('cc-opt-ascension-good');
+      if (labelEl) {
+        labelEl.textContent = 'Gain';
+        labelEl.classList.remove('cc-opt-ascension-good');
+      }
+    }
+  }
+}
 
 /**
  * Update the Lucky bank display in the UI

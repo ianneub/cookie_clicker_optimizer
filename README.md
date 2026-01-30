@@ -32,6 +32,7 @@ A bookmarklet that displays the most efficient purchase in Cookie Clicker using 
 | **Golden Cookie Handling** | Auto-clicks golden/wrath cookies, prioritizes golden upgrades |
 | **Lucky Bank Protection** | Reserves cookies (3× best item price, capped at 6000× CpS) |
 | **Wrinkler Management** | Tracks wrinkler rewards, suggests when to pop for faster progress |
+| **Ascension Timing** | Shows prestige gain %, turns green with "Ascend!" at 100%+ |
 
 ---
 
@@ -191,6 +192,17 @@ When **Drgn: ON** (visible after dragon level 5):
 | During Frenzy | Dragon's Fortune | Epoch Manipulator |
 
 Dual auras require dragon level 21+.
+
+### Ascension Timing
+
+Once you've ascended at least once, the panel shows:
+
+- **Prestige**: Your current prestige level
+- **Gain**: Prestige you'd receive if you ascended now, with percentage increase
+
+When the percentage reaches **100% or higher** (doubling your prestige), the label changes to **"Ascend!"** in green, indicating a good time to reset.
+
+This follows the common strategy of ascending when you can at least double your prestige, maximizing heavenly chip efficiency.
 
 ### Golden Switch Exclusion
 

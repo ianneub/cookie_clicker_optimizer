@@ -97,6 +97,24 @@ export interface OptimizerState {
   lastDragonSwitch: number;
 }
 
+export interface AscensionInput {
+  currentPrestige: number;
+  cookiesReset: number;
+  cookiesEarned: number;
+  howMuchPrestige: (cookies: number) => number;
+  heavenlyChips: number;
+  unpurchasedUpgradeCost: number;
+}
+
+export interface AscensionStats {
+  currentPrestige: number;
+  pendingPrestige: number;
+  percentIncrease: number;
+  unpurchasedUpgradeCost: number;
+  chipsDeficit: number;
+  isGoodToAscend: boolean;
+}
+
 // Re-export game types
 export * from './game';
 export * from './cookieMonster';

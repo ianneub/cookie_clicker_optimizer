@@ -13,6 +13,7 @@
   --cc-green: #7dcea0;
   --cc-red: #e57373;
   --cc-purple: #b39ddb;
+  --cc-cyan: #4dd0e1;
   --cc-text: #e8ddd0;
   --cc-text-dim: #9a8b7a;
 
@@ -241,10 +242,63 @@
 .cc-opt-bank-diff {
   color: var(--cc-green);
   font-weight: 500;
+  text-align: right;
 }
 
 .cc-opt-bank-diff.below-threshold {
   color: var(--cc-red);
+}
+
+#cc-opt-ascension {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 12px;
+  background: linear-gradient(90deg, rgba(77, 208, 225, 0.08) 0%, transparent 100%);
+  border-bottom: 1px solid var(--cc-border);
+}
+
+.cc-opt-ascension-icon {
+  font-size: 14px;
+  color: var(--cc-cyan);
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.cc-opt-ascension-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cc-opt-ascension-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cc-opt-ascension-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--cc-cyan);
+}
+
+#cc-opt-ascension-current {
+  font-size: 12px;
+  color: var(--cc-cyan);
+  font-weight: 500;
+}
+
+#cc-opt-ascension-pending {
+  font-size: 10px;
+  color: var(--cc-text-dim);
+}
+
+.cc-opt-ascension-good {
+  color: var(--cc-green) !important;
+  font-weight: 500;
 }
 
 #cc-opt-wrinklers {

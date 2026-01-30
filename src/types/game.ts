@@ -16,6 +16,7 @@ export interface Upgrade {
   basePrice: number;
   bought: boolean;
   unlocked: boolean;
+  pool?: string;
   buy: () => void;
   getPrice: () => number;
 }
@@ -74,6 +75,12 @@ export interface Game {
   getWrinklersMax?: () => number;
   ClosePrompt?: () => void;
   ConfirmPrompt?: () => void;
+  prestige: number;
+  heavenlyChips: number;
+  heavenlyChipsSpent: number;
+  cookiesReset: number;
+  cookiesEarned: number;
+  HowMuchPrestige: (cookies: number) => number;
 }
 
 declare global {

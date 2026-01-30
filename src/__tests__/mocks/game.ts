@@ -115,5 +115,11 @@ export function createGameMock(options: GameMockOptions = {}): Game {
     SetDragonAura: mock(),
     LoadMod: mock(),
     specialTab: '',
+    prestige: 0,
+    heavenlyChips: 0,
+    heavenlyChipsSpent: 0,
+    cookiesReset: 0,
+    cookiesEarned: 0,
+    HowMuchPrestige: mock((cookies: number) => Math.floor(Math.pow(cookies / 1e12, 0.5))),
   };
 }
