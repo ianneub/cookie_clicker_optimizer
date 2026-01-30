@@ -281,8 +281,11 @@ function findBestPurchase(state: OptimizerState): void {
     hasAura: Game.hasAura.bind(Game),
   };
 
+  // Check if dragon egg is purchased before any dragon automation
+  const hasDragonEgg = Game.Has('A crumbly egg');
+
   // Auto-train dragon (runs at all levels, including 0-4 before auras unlock)
-  if (state.autoDragon) {
+  if (state.autoDragon && hasDragonEgg) {
     const maxLevel = Game.dragonLevels.length - 1;
     const currentLevel = Game.dragonLevels[Game.dragonLevel];
     if (Game.dragonLevel < maxLevel && currentLevel?.cost()) {
@@ -298,7 +301,7 @@ function findBestPurchase(state: OptimizerState): void {
     }
   }
 
-  const dragonState = getDragonState(dragonGameContext);
+  const dragonState = hasDragonEgg ? getDragonState(dragonGameContext) : null;
   let recommendedDragonConfig = null;
 
   if (dragonState) {
