@@ -284,7 +284,8 @@ function findBestPurchase(state: OptimizerState): void {
   // Auto-train dragon (runs at all levels, including 0-4 before auras unlock)
   if (state.autoDragon) {
     const maxLevel = Game.dragonLevels.length - 1;
-    if (Game.dragonLevel < maxLevel && Game.dragonLevels[Game.dragonLevel].cost()) {
+    const currentLevel = Game.dragonLevels[Game.dragonLevel];
+    if (Game.dragonLevel < maxLevel && currentLevel?.cost()) {
       // Open dragon menu before training - UpgradeDragon() expects it open
       ensureDragonMenuOpen();
       const fromLevel = Game.dragonLevel;

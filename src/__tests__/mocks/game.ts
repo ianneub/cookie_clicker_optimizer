@@ -102,7 +102,18 @@ export function createGameMock(options: GameMockOptions = {}): Game {
     shimmers,
     wrinklers: [],
     mods: {},
+    buffs: {},
+    dragonLevel: 0,
+    dragonLevels: [],
+    dragonAura: 0,
+    dragonAura2: 0,
+    UpgradeDragon: mock(),
+    recalculateGains: 1,
     Has: mock(() => false),
+    hasAura: mock(() => false),
+    SelectDragonAura: mock(),
+    SetDragonAura: mock(),
     LoadMod: mock(),
+    specialTab: '',
   };
 }
