@@ -7,7 +7,6 @@ import type { OptimizerState } from './types';
 declare global {
   interface Window {
     CCOptimizer: OptimizerState;
-    CCOptimizerStop: () => void;
   }
 }
 
@@ -40,5 +39,7 @@ export function createDefaultState(): OptimizerState {
     autoWrinklers: false,
     autoDragon: false,
     lastDragonSwitch: 0,
+    heavenlyUpgradeBreakdown: null,
+    stop: () => {},
   };
 }

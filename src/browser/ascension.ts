@@ -2,8 +2,12 @@
  * Browser integration for ascension stats
  */
 
-import { calculateAscensionStats, calculateUnpurchasedHeavenlyCost } from '../core/ascension';
-import type { AscensionStats, Upgrade } from '../types';
+import {
+  calculateAscensionStats,
+  calculateUnpurchasedHeavenlyCost,
+  calculateHeavenlyUpgradeBreakdown,
+} from '../core/ascension';
+import type { AscensionStats, HeavenlyUpgradeBreakdown, Upgrade } from '../types';
 
 export interface AscensionGameContext {
   prestige: number;
@@ -32,4 +36,17 @@ export function getAscensionStats(game: AscensionGameContext): AscensionStats | 
     heavenlyChips: game.heavenlyChips,
     unpurchasedUpgradeCost: unpurchasedCost,
   });
+}
+
+/**
+ * Get detailed breakdown of unpurchased heavenly upgrades
+ * Returns null if player hasn't ascended yet (prestige === 0)
+ */
+export function getHeavenlyUpgradeBreakdown(
+  game: AscensionGameContext
+): HeavenlyUpgradeBreakdown | null {
+  if (game.prestige === 0) return null;
+
+  const upgrades = Object.values(game.Upgrades);
+  return calculateHeavenlyUpgradeBreakdown(upgrades, game.heavenlyChips);
 }

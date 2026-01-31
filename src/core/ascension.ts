@@ -2,7 +2,8 @@
  * Ascension calculation logic
  */
 
-import type { AscensionInput, AscensionStats } from '../types';
+import type { AscensionInput, AscensionStats, HeavenlyUpgradeBreakdown } from '../types';
+import { formatNumber } from './formatting';
 
 /**
  * Calculate ascension statistics
@@ -38,4 +39,35 @@ export function calculateUnpurchasedHeavenlyCost(
   return upgrades
     .filter((u) => u.pool === 'prestige' && !u.bought)
     .reduce((sum, u) => sum + u.basePrice, 0);
+}
+
+/**
+ * Calculate detailed breakdown of unpurchased heavenly upgrades
+ */
+export function calculateHeavenlyUpgradeBreakdown(
+  upgrades: Array<{ name: string; pool?: string; basePrice: number; bought: boolean }>,
+  heavenlyChips: number
+): HeavenlyUpgradeBreakdown {
+  const unpurchased = upgrades
+    .filter((u) => u.pool === 'prestige' && !u.bought)
+    .map((u) => ({
+      name: u.name,
+      cost: u.basePrice,
+      costFormatted: formatNumber(u.basePrice),
+      canAfford: heavenlyChips >= u.basePrice,
+    }))
+    .sort((a, b) => a.cost - b.cost);
+
+  const totalCost = unpurchased.reduce((sum, u) => sum + u.cost, 0);
+  const chipsNeeded = Math.max(0, totalCost - heavenlyChips);
+
+  return {
+    totalCost,
+    totalCostFormatted: formatNumber(totalCost),
+    chipsAvailable: heavenlyChips,
+    chipsAvailableFormatted: formatNumber(heavenlyChips),
+    chipsNeeded,
+    chipsNeededFormatted: formatNumber(chipsNeeded),
+    upgrades: unpurchased,
+  };
 }

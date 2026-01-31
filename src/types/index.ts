@@ -95,6 +95,8 @@ export interface OptimizerState {
   autoWrinklers: boolean;
   autoDragon: boolean;
   lastDragonSwitch: number;
+  readonly heavenlyUpgradeBreakdown: HeavenlyUpgradeBreakdown | null;
+  stop: () => void;
 }
 
 export interface AscensionInput {
@@ -113,6 +115,23 @@ export interface AscensionStats {
   unpurchasedUpgradeCost: number;
   chipsDeficit: number;
   isGoodToAscend: boolean;
+}
+
+export interface HeavenlyUpgradeInfo {
+  name: string;
+  cost: number;
+  costFormatted: string;
+  canAfford: boolean;
+}
+
+export interface HeavenlyUpgradeBreakdown {
+  totalCost: number;
+  totalCostFormatted: string;
+  chipsAvailable: number;
+  chipsAvailableFormatted: string;
+  chipsNeeded: number;
+  chipsNeededFormatted: string;
+  upgrades: HeavenlyUpgradeInfo[];
 }
 
 // Re-export game types

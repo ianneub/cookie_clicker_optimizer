@@ -40,7 +40,7 @@ import {
   updateDragonButton,
 } from './ui/buttons';
 import { updateLuckyBankDisplay, updateWrinklerDisplay, updateDisplay, updateDragonDisplay, updateAscensionDisplay } from './ui/display';
-import { getAscensionStats } from './browser/ascension';
+import { getAscensionStats, getHeavenlyUpgradeBreakdown } from './browser/ascension';
 import { getState } from './state';
 import type { Candidate, OptimizerState } from './types';
 
@@ -459,7 +459,7 @@ function handleToggle(state: OptimizerState, key: keyof OptimizerState): void {
 }
 
 /**
- * Stop the auto-refresh loop
+ * Stop the auto-refresh loop and clean up global state
  */
 function stopAutoRefresh(state: OptimizerState): void {
   if (state.refreshTimer) {
@@ -471,6 +471,10 @@ function stopAutoRefresh(state: OptimizerState): void {
     state.displayElement.remove();
   }
   cleanupPanel();
+
+  // Clean up global references
+  // @ts-expect-error Intentionally deleting global property
+  delete window.CCOptimizer;
 }
 
 /**
@@ -527,17 +531,33 @@ export function run(): void {
     return;
   }
 
+  // Check if already running before creating new state
+  if (window.CCOptimizer?.isRunning) {
+    window.CCOptimizer.stop();
+    return;
+  }
+
   const state = getState();
 
-  // Expose stop function globally
-  window.CCOptimizerStop = () => stopAutoRefresh(state);
+  // Expose stop function on state object
+  state.stop = () => stopAutoRefresh(state);
 
-  // Toggle behavior if already running
-  if (state.isRunning) {
-    stopAutoRefresh(state);
-  } else {
-    ensureCookieMonster(() => startAutoRefresh(state));
-  }
+  // Expose heavenly upgrade breakdown as a getter property
+  Object.defineProperty(state, 'heavenlyUpgradeBreakdown', {
+    get: () =>
+      getHeavenlyUpgradeBreakdown({
+        prestige: Game.prestige,
+        cookiesReset: Game.cookiesReset,
+        cookiesEarned: Game.cookiesEarned,
+        heavenlyChips: Game.heavenlyChips,
+        HowMuchPrestige: Game.HowMuchPrestige.bind(Game),
+        Upgrades: Game.Upgrades,
+      }),
+    enumerable: true,
+    configurable: true,
+  });
+
+  ensureCookieMonster(() => startAutoRefresh(state));
 }
 
 // Auto-run when loaded in browser
